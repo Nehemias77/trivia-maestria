@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trivia Maestría</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding-top: 2rem;
+        }
+        .container {
+            max-width: 480px;
+            width: 95%;
+            background: #ffffff;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+        }
+        .letter-button {
+            transition: all 0.1s;
+            cursor: pointer;
+            user-select: none;
+        }
+        .letter-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .slot-box {
+            min-width: 32px;
+            min-height: 48px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-bottom: 3px solid #6366f1;
+            margin: 0 2px;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .slot-box.filled {
+            color: #10b981;
+        }
+        .slot-box.incorrect {
+            border-bottom-color: #ef4444;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="app">
+    <h1 class="text-3xl font-bold text-center mb-6 text-indigo-600">Trivia Maestría</h1>
+
+    <div id="loading-screen" class="p-6 text-center">
+        <p class="text-lg font-semibold text-indigo-500 mb-2">Cargando preguntas...</p>
+        <div class="w-full bg-gray-200 rounded-full h-2">
+            <div id="load-progress" class="bg-indigo-600 h-2 rounded-full transition-all" style="width: 0%"></div>
+        </div>
+    </div>
+
+    <div id="main-content" class="hidden">
+        <div id="game-info" class="mb-4 p-3 bg-gray-100 rounded-xl flex justify-between items-center text-sm font-semibold">
+            <span class="text-gray-700">Modo: <span id="current-mode">N/A</span></span>
+            <span id="score-display-racha" class="text-red-600 flex items-center hidden">Racha: <span id="streak-display">0</span></span>
+            <span id="score-display-aventura" class="text-green-600 flex items-center">
+                Monedas: <span id="coins-display">0</span>
+            </span>
+        </div>
+
+        <div id="mode-selection" class="space-y-4">
+            <h2 class="text-xl font-semibold mb-4 text-center">Selecciona tu Desafío</h2>
+            <button onclick="startGame('Racha')" class="w-full py-3 px-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl transition shadow-lg shadow-indigo-300/50">
+                Modo Racha (200 preguntas)
+            </button>
+            <button onclick="startGame('Aventura')" class="w-full py-3 px-4 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-xl transition shadow-lg shadow-purple-300/50">
+                Modo Aventura (200 preguntas)
+            </button>
+        </div>
+
+        <div id="game-screen" class="hidden">
+            <div id="racha-timer" class="text-2xl font-extrabold text-center mb-4 p-2 rounded-lg bg-red-100 text-red-600 transition duration-300 hidden">
+                Tiempo: 15s
+            </div>
+            <div class="relative mb-6 p-4 bg-indigo-50 rounded-xl shadow-inner border-l-4 border-indigo-400">
+                <p id="question-text" class="text-lg font-medium text-center text-indigo-900"></p>
+                <p id="question-value" class="text-xs text-gray-500 mt-2 text-right"></p>
+                <button id="hint-button" onclick="showHint()" class="absolute top-2 right-2 p-2 rounded-full bg-yellow-400 hover:bg-yellow-500 text-white transition hidden">
+                    💡
+                </button>
+            </div>
+
+            <div id="aventura-input-container" class="space-y-4 hidden">
+                <div id="answer-slots" class="flex justify-center mb-6 overflow-x-auto p-2"></div>
+                <div id="letter-buttons" class="flex flex-wrap justify-center gap-2 mb-6 p-2 bg-gray-50 rounded-lg shadow-inner"></div>
+                <div class="flex space-x-2">
+                    <button onclick="undoLastLetter()" class="flex-shrink-0 w-1/4 py-3 bg-gray-400 hover:bg-gray-500 text-white font-bold rounded-xl transition shadow-lg">
+                        ↶
+                    </button>
+                    <button id="aventura-check-button" onclick="checkAnswer()" class="flex-grow w-3/4 py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition shadow-lg shadow-green-300/50">
+                        Verificar
+                    </button>
+                </div>
+            </div>
+
+            <div id="racha-input-container" class="space-y-4 hidden">
+                <input type="text" id="racha-answer-input" placeholder="Escribe tu respuesta (MAYÚSCULAS)" class="w-full p-3 border-2 border-gray-300 rounded-xl focus:border-indigo-500 focus:outline-none text-center uppercase" onkeydown="handleRachaKeyPress(event)">
+                <button id="racha-check-button" onclick="checkAnswer()" class="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition shadow-lg shadow-green-300/50">
+                    Responder
+                </button>
+                <p id="racha-feedback" class="text-center mt-4 font-semibold hidden"></p>
+            </div>
+
+            <button onclick="showModeSelection()" class="w-full py-2 text-sm text-gray-600 hover:text-indigo-600 transition mt-4">
+                Volver a Modos
+            </button>
+        </div>
+
+        <div id="modal-container" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+            <div id="modal-content" class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-sm text-center">
+                <h3 id="modal-title" class="text-2xl font-bold mb-3">¡Título!</h3>
+                <p id="modal-text" class="mb-5 text-gray-700"></p>
+                <div id="modal-buttons" class="space-y-3"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let rachaQuestions = [];
+    let adventureQuestions = [];
+
+    const SHEET_ID = '1sk322HMzWsLTLb5VpI50qvP0u7n36gvNDFv8E9WOfAY';
+    const RACHA_GID = '0';
+    const AVENTURA_GID = '157464759';
+
+    const TIME_LIMIT = 15;
+
+    const state = {
+        coins: 0,
+        currentStreak: 0,
+        mode: null,
+        questions: [],
+        currentQIndex: -1,
+        currentAnswer: [],
+        usedLetters: [],
+        timerInterval: null,
+        timeLeft: TIME_LIMIT,
+    };
+
+    const dom = {
+        loadingScreen: document.getElementById('loading-screen'),
+        mainContent: document.getElementById('main-content'),
+        modeSelection: document.getElementById('mode-selection'),
+        gameScreen: document.getElementById('game-screen'),
+        currentModeDisplay: document.getElementById('current-mode'),
+        coinsDisplay: document.getElementById('coins-display'),
+        streakDisplay: document.getElementById('streak-display'),
+        questionText: document.getElementById('question-text'),
+        questionValue: document.getElementById('question-value'),
+        rachaTimer: document.getElementById('racha-timer'),
+        hintButton: document.getElementById('hint-button'),
+        aventuraContainer: document.getElementById('aventura-input-container'),
+        answerSlots: document.getElementById('answer-slots'),
+        letterButtons: document.getElementById('letter-buttons'),
+        rachaContainer: document.getElementById('racha-input-container'),
+        rachaAnswerInput: document.getElementById('racha-answer-input'),
+        rachaFeedback: document.getElementById('racha-feedback'),
+        modalContainer: document.getElementById('modal-container'),
+        modalTitle: document.getElementById('modal-title'),
+        modalText: document.getElementById('modal-text'),
+        modalButtons: document.getElementById('modal-buttons'),
+    };
+
+    async function fetchSheetData(gid) {
+        try {
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${gid}`;
+            const response = await fetch(url);
+            const csv = await response.text();
+            
+            const lines = csv.trim().split('\n');
+            const questions = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i];
+                if (!line.trim()) continue;
+                
+                const parts = line.split(',');
+                if (parts.length >= 4) {
+                    const id = parts[0].trim();
+                    const pregunta = parts[1].trim().replace(/^"|"$/g, '');
+                    const respuesta = parts[2].trim().replace(/^"|"$/g, '').toUpperCase();
+                    const valor = parseInt(parts[3].trim()) || 1;
+                    
+                    if (id && pregunta && respuesta) {
+                        questions.push({
+                            id: parseInt(id),
+                            q: pregunta,
+                            a: respuesta,
+                            value: valor
+                        });
+                    }
+                }
+            }
+            
+            return questions;
+        } catch (error) {
+            console.error('Error cargando datos:', error);
+            return [];
+        }
+    }
+
+    async function loadQuestionsFromAPI() {
+        try {
+            document.getElementById('load-progress').style.width = '25%';
+            rachaQuestions = await fetchSheetData(RACHA_GID);
+            console.log('Racha cargadas:', rachaQuestions.length);
+            
+            document.getElementById('load-progress').style.width = '75%';
+            adventureQuestions = await fetchSheetData(AVENTURA_GID);
+            console.log('Aventura cargadas:', adventureQuestions.length);
+            
+            document.getElementById('load-progress').style.width = '100%';
+            
+            if (rachaQuestions.length > 0 && adventureQuestions.length > 0) {
+                return true;
+            } else {
+                throw new Error('No se cargaron suficientes preguntas');
+            }
+        } catch (error) {
+            console.error('❌ Error:', error);
+            document.getElementById('loading-screen').innerHTML = `
+                <p class="text-red-600 font-bold">Error al cargar preguntas</p>
+                <p class="text-sm text-gray-600 mt-2">Revisa la consola (F12)</p>
+                <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-indigo-600 text-white rounded">Reintentar</button>
+            `;
+            return false;
+        }
+    }
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    function generateRandomLetters(count) {
+        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        const letters = [];
+        for (let i = 0; i < count; i++) {
+            letters.push(alphabet.charAt(Math.floor(Math.random() * alphabet.length)));
+        }
+        return letters;
+    }
+
+    function normalizeAnswer(text) {
+        if (!text) return "";
+        let normalized = text.toUpperCase().trim();
+        normalized = normalized.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        if (normalized.endsWith('S') && normalized.length > 1) {
+            normalized = normalized.substring(0, normalized.length - 1);
+        }
+        return normalized;
+    }
+
+    function areAnswersClose(userAnswer, correctAnswer) {
+        const userN = normalizeAnswer(userAnswer);
+        const correctN = normalizeAnswer(correctAnswer);
+        
+        if (userN === correctN) return true;
+        if (userAnswer.toUpperCase().trim() === correctAnswer.toUpperCase().trim()) return true;
+
+        const userSingular = userAnswer.toUpperCase().trim().replace(/S$/, '');
+        const correctSingular = correctAnswer.toUpperCase().trim().replace(/S$/, '');
+        
+        if (userSingular === correctAnswer.toUpperCase().trim() || correctSingular === userAnswer.toUpperCase().trim()) {
+            return true;
+        }
+        
+        return false;
+    }
+
+    function updateCoinsDisplay() { dom.coinsDisplay.textContent = state.coins; }
+    function updateStreakDisplay() { dom.streakDisplay.textContent = state.currentStreak; }
+
+    function showTemporaryFeedback(element, message, colorClass) {
+        element.textContent = message;
+        element.classList.remove('hidden', 'text-indigo-500', 'text-red-500', 'text-green-500');
+        element.classList.add(colorClass);
+        setTimeout(() => element.classList.add('hidden'), 2000);
+    }
+
+    function resetView() {
+        dom.modeSelection.classList.remove('hidden');
+        dom.gameScreen.classList.add('hidden');
+        dom.modalContainer.classList.add('hidden');
+    }
+
+    function showModeSelection() {
+        stopTimer();
+        state.mode = null;
+        state.currentQIndex = -1;
+        state.currentAnswer = [];
+        state.usedLetters = [];
+        state.currentStreak = 0;
+        resetView();
+        dom.currentModeDisplay.textContent = 'N/A';
+        updateCoinsDisplay();
+    }
+
+    function startGame(mode) {
+        state.mode = mode;
+        dom.currentModeDisplay.textContent = mode;
+        
+        if (mode === 'Racha') {
+            state.questions = [...rachaQuestions];
+            shuffleArray(state.questions);
+            state.currentStreak = 0;
+            dom.streakDisplay.parentElement.classList.remove('hidden');
+        } else {
+            state.questions = [...adventureQuestions];
+            shuffleArray(state.questions);
+            dom.streakDisplay.parentElement.classList.add('hidden');
+        }
+
+        state.currentQIndex = -1;
+        resetView();
+        dom.gameScreen.classList.remove('hidden');
+        goToNextQuestion();
+    }
+
+    function goToNextQuestion() {
+        state.currentQIndex++;
+        dom.modalContainer.classList.add('hidden');
+
+        if (state.currentQIndex < state.questions.length) {
+            loadQuestion(state.questions[state.currentQIndex]);
+        } else {
+            endGame();
+        }
+    }
+
+    function startTimer() {
+        stopTimer();
+        state.timeLeft = TIME_LIMIT;
+        dom.rachaTimer.textContent = `Tiempo: ${state.timeLeft}s`;
+        dom.rachaTimer.classList.remove('bg-red-500', 'text-white', 'hidden');
+        dom.rachaTimer.classList.add('bg-red-100', 'text-red-600');
+        
+        state.timerInterval = setInterval(() => {
+            state.timeLeft--;
+            dom.rachaTimer.textContent = `Tiempo: ${state.timeLeft}s`;
+
+            if (state.timeLeft <= 5) {
+                dom.rachaTimer.classList.remove('bg-red-100', 'text-red-600');
+                dom.rachaTimer.classList.add('bg-red-500', 'text-white');
+            }
+
+            if (state.timeLeft <= 0) {
+                handleTimeOut();
+            }
+        }, 1000);
+    }
+
+    function stopTimer() {
+        if (state.timerInterval) {
+            clearInterval(state.timerInterval);
+            state.timerInterval = null;
+        }
+    }
+
+    function handleTimeOut() {
+        stopTimer();
+        dom.rachaAnswerInput.disabled = true;
+        document.getElementById('racha-check-button').disabled = true;
+        endGame(false, "¡Tiempo agotado!");
+    }
+
+    function handleRachaKeyPress(event) {
+        if (state.mode !== 'Aventura' && event.key === 'Enter' && !document.getElementById('racha-check-button').disabled) {
+            checkAnswer();
+        }
+    }
+
+    function loadQuestion(question) {
+        dom.rachaFeedback.classList.add('hidden');
+        dom.rachaAnswerInput.value = '';
+        dom.rachaAnswerInput.disabled = false;
+        const checkButton = document.getElementById('racha-check-button');
+        if (checkButton) checkButton.disabled = false;
+        
+        dom.questionText.textContent = question.q;
+        
+        const isAventura = state.mode === 'Aventura';
+        
+        dom.rachaContainer.classList.toggle('hidden', isAventura);
+        dom.aventuraContainer.classList.toggle('hidden', !isAventura);
+        dom.hintButton.classList.toggle('hidden', !isAventura);
+        dom.rachaTimer.classList.add('hidden');
+
+        if (isAventura) {
+            dom.questionValue.textContent = `Valor: ${question.value} monedas`;
+            state.currentAnswer = [];
+            state.usedLetters = [];
+            
+            dom.answerSlots.innerHTML = '';
+            const answerLength = question.a.length;
+            for (let i = 0; i < answerLength; i++) {
+                const slot = document.createElement('div');
+                slot.classList.add('slot-box', 'bg-white', 'text-gray-800');
+                slot.dataset.index = i;
+                slot.textContent = '';
+                dom.answerSlots.appendChild(slot);
+            }
+            generateLetterButtons(question.a);
+        } else if (state.mode === 'Racha') {
+            dom.questionValue.textContent = `Acierto #${state.currentQIndex + 1}`;
+            dom.rachaTimer.classList.remove('hidden');
+            startTimer();
+        }
+    }
+
+    function checkAnswer() {
+        if (!state.questions || state.currentQIndex < 0 || state.currentQIndex >= state.questions.length) return;
+
+        const currentQ = state.questions[state.currentQIndex];
+        let userAnswer = '';
+        
+        if (state.mode === 'Aventura') {
+            userAnswer = state.currentAnswer.map(item => item.letter).join('');
+            if (userAnswer.length !== currentQ.a.length) {
+                showTemporaryFeedback(dom.rachaFeedback, 'Por favor, completa todas las casillas.', 'text-red-500');
+                return;
+            }
+        } else {
+            userAnswer = dom.rachaAnswerInput.value.toUpperCase().trim();
+        }
+
+        const isCorrect = areAnswersClose(userAnswer, currentQ.a);
+
+        if (state.mode === 'Racha') {
+            if (isCorrect) {
+                handleRachaCorrect();
+            } else {
+                handleRachaIncorrect(currentQ.a);
+            }
+        } else if (state.mode === 'Aventura') {
+            if (userAnswer === currentQ.a) { 
+                handleAventuraCorrect(currentQ);
+            } else {
+                handleAventuraIncorrect();
+            }
+        }
+    }
+
+    function handleRachaCorrect() {
+        stopTimer();
+        state.currentStreak++;
+        updateStreakDisplay();
+        
+        dom.rachaFeedback.textContent = '¡Correcto! Racha: ' + state.currentStreak;
+        dom.rachaFeedback.classList.remove('hidden', 'text-red-500');
+        dom.rachaFeedback.classList.add('text-green-500');
+
+        setTimeout(goToNextQuestion, 1000);
+    }
+
+    function handleRachaIncorrect(correctAnswer) {
+        stopTimer();
+        dom.rachaAnswerInput.disabled = true;
+        document.getElementById('racha-check-button').disabled = true;
+        dom.rachaFeedback.textContent = `¡Incorrecto! La respuesta era: ${correctAnswer}`;
+        dom.rachaFeedback.classList.remove('hidden', 'text-green-500');
+        dom.rachaFeedback.classList.add('text-red-500');
+
+        endGame(false, "¡Racha Rota!");
+    }
+
+    function handleAventuraCorrect(currentQ) {
+        const reward = currentQ.value;
+        state.coins += reward;
+        updateCoinsDisplay();
+
+        dom.modalTitle.textContent = "¡Respuesta Correcta!";
+        dom.modalTitle.classList.remove('text-red-600', 'text-indigo-600');
+        dom.modalTitle.classList.add('text-green-600');
+        dom.modalText.innerHTML = `¡Ganaste <span class="text-green-600 font-bold">${reward} monedas</span>! Total: ${state.coins} monedas.`;
+
+        dom.modalButtons.innerHTML = `
+            <button onclick="goToNextQuestion()" class="w-full py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl transition shadow-lg">
+                Continuar
+            </button>
+            <button onclick="showModeSelection()" class="w-full py-3 bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold rounded-xl transition">
+                Abandonar
+            </button>
+        `;
+        dom.modalContainer.classList.remove('hidden');
+    }
+
+    function handleAventuraIncorrect() {
+        const slots = dom.answerSlots.children;
+        Array.from(slots).forEach(slot => {
+            slot.classList.add('incorrect');
+        });
+
+        state.currentAnswer = [];
+        state.usedLetters = [];
+        Array.from(dom.letterButtons.children).forEach(button => {
+            button.disabled = false;
+            button.classList.remove('bg-gray-300', 'opacity-50', 'cursor-not-allowed');
+            button.classList.add('bg-white', 'hover:bg-gray-100');
+        });
+        Array.from(slots).forEach(slot => {
+            slot.textContent = '';
+        });
+        
+        showTemporaryFeedback(dom.rachaFeedback, 'Incorrecto. Intenta nuevamente.', 'text-red-500');
+    }
+
+    function endGame(completed = true, message = null) {
+        stopTimer();
+        dom.modalContainer.classList.remove('hidden');
+        
+        if (state.mode === 'Racha') {
+            dom.modalTitle.textContent = message || (completed ? "¡Racha Completada!" : "¡Racha Rota!");
+            dom.modalTitle.classList.remove('text-green-600');
+            dom.modalTitle.classList.add(completed ? 'text-indigo-600' : 'text-red-600');
+            dom.modalText.innerHTML = `Tu racha final fue de <span class="text-xl font-bold">${state.currentStreak}</span> aciertos.`;
+        } else if (state.mode === 'Aventura') {
+            dom.modalTitle.textContent = "¡Partida Finalizada!";
+            dom.modalTitle.classList.remove('text-red-600');
+            dom.modalTitle.classList.add('text-indigo-600');
+            dom.modalText.innerHTML = `¡Completaste el modo Aventura! Total: <span class="text-indigo-600 font-bold">${state.coins} monedas</span>.`;
+        }
+        
+        dom.modalButtons.innerHTML = `
+            <button onclick="showModeSelection()" class="w-full py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl transition shadow-lg">
+                Volver a Modos
+            </button>
+        `;
+    }
+
+    function generateLetterButtons(correctAnswer) {
+        const correctLetters = correctAnswer.split('');
+        const requiredCount = correctLetters.length;
+        const totalLetters = Math.max(requiredCount, 10);
+        const fillerCount = totalLetters - requiredCount;
+
+        let letterPool = [...correctLetters];
+        letterPool = letterPool.concat(generateRandomLetters(fillerCount));
+        shuffleArray(letterPool);
+
+        dom.letterButtons.innerHTML = '';
+        letterPool.forEach((letter, index) => {
+            const button = document.createElement('button');
+            button.textContent = letter;
+            button.classList.add('letter-button', 'bg-white', 'text-lg', 'font-bold', 'py-2', 'px-3', 'rounded-lg', 'shadow-md', 'border', 'border-gray-200', 'hover:bg-gray-100');
+            button.dataset.index = index;
+            button.onclick = () => handleLetterClick(letter, index, button);
+            dom.letterButtons.appendChild(button);
+        });
+    }
+
+    function handleLetterClick(letter, index, button) {
+        const slots = dom.answerSlots.children;
+        const slotIndex = state.currentAnswer.length;
+
+        if (slotIndex < slots.length) {
+            slots[slotIndex].textContent = letter;
+            slots[slotIndex].classList.add('filled');
+
+            state.currentAnswer.push({ letter, buttonIndex: index });
+            state.usedLetters.push(index);
+
+            button.disabled = true;
+            button.classList.remove('bg-white', 'hover:bg-gray-100');
+            button.classList.add('bg-gray-300', 'opacity-50', 'cursor-not-allowed');
+        }
+        Array.from(slots).forEach(slot => slot.classList.remove('incorrect'));
+    }
+
+    function undoLastLetter() {
+        if (state.currentAnswer.length === 0) return;
+
+        state.currentAnswer.pop();
+        
+        const slots = dom.answerSlots.children;
+        const lastSlot = slots[state.currentAnswer.length];
+        if (lastSlot) {
+            lastSlot.textContent = '';
+            lastSlot.classList.remove('filled', 'incorrect');
+        }
+
+        const lastUsedButtonIndex = state.usedLetters.pop();
+        const buttonToEnable = document.querySelector(`.letter-button[data-index="${lastUsedButtonIndex}"]`);
+        
+        if (buttonToEnable) {
+            buttonToEnable.disabled = false;
+            buttonToEnable.classList.remove('bg-gray-300', 'opacity-50', 'cursor-not-allowed');
+            buttonToEnable.classList.add('bg-white', 'hover:bg-gray-100');
+        }
+    }
+
+    function showHint() {
+        const currentQ = state.questions[state.currentQIndex];
+        const correctLetter = currentQ.a.charAt(0);
+        
+        if (state.currentAnswer.length === 0) {
+            const letterPoolButtons = Array.from(dom.letterButtons.children);
+            const targetButton = letterPoolButtons.find(btn => btn.textContent === correctLetter && !btn.disabled);
+
+            if (targetButton) {
+                handleLetterClick(correctLetter, parseInt(targetButton.dataset.index), targetButton);
+                dom.hintButton.disabled = true;
+            }
+        }
+    }
+
+    window.startGame = startGame;
+    window.showModeSelection = showModeSelection;
+    window.checkAnswer = checkAnswer;
+    window.handleRachaKeyPress = handleRachaKeyPress;
+    window.showHint = showHint;
+    window.undoLastLetter = undoLastLetter;
+    window.goToNextQuestion = goToNextQuestion;
+
+    window.onload = async function() {
+        const loaded = await loadQuestionsFromAPI();
+        if (loaded) {
+            document.getElementById('loading-screen').classList.add('hidden');
+            document.getElementById('main-content').classList.remove('hidden');
+            showModeSelection();
+        }
+    };
+</script>
+</body>
+</html>
