@@ -70,17 +70,23 @@
             <span class="text-gray-700">Modo: <span id="current-mode">N/A</span></span>
             <span id="score-display-racha" class="text-red-600 flex items-center hidden">Racha: <span id="streak-display">0</span></span>
             <span id="score-display-aventura" class="text-green-600 flex items-center">
-                Monedas: <span id="coins-display">0</span>
+                💰 <span id="coins-display">0</span> | 💡 <span id="hints-display">0</span>
             </span>
         </div>
 
         <div id="mode-selection" class="space-y-4">
             <h2 class="text-xl font-semibold mb-4 text-center">Selecciona tu Desafío</h2>
             <button onclick="startGame('Racha')" class="w-full py-3 px-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl transition shadow-lg shadow-indigo-300/50">
-                Modo Racha (200 preguntas)
+                🔥 Modo Racha (200 preguntas)
             </button>
             <button onclick="startGame('Aventura')" class="w-full py-3 px-4 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-xl transition shadow-lg shadow-purple-300/50">
-                Modo Aventura (200 preguntas)
+                🎮 Modo Aventura (200 preguntas)
+            </button>
+            <button onclick="showMultiplayer()" class="w-full py-3 px-4 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl transition shadow-lg shadow-pink-300/50">
+                👥 Modo Multijugador
+            </button>
+            <button onclick="showShop()" class="w-full py-3 px-4 bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded-xl transition shadow-lg shadow-yellow-300/50">
+                🛒 Tienda
             </button>
         </div>
 
@@ -118,7 +124,68 @@
             </div>
 
             <button onclick="showModeSelection()" class="w-full py-2 text-sm text-gray-600 hover:text-indigo-600 transition mt-4">
-                Volver a Modos
+                ⬅️ Volver a Modos
+            </button>
+        </div>
+
+        <div id="shop-screen" class="hidden space-y-4">
+            <h2 class="text-2xl font-bold mb-4 text-center text-yellow-600">🛒 Tienda</h2>
+            
+            <div class="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-xl border-2 border-yellow-300">
+                <h3 class="text-lg font-bold mb-2">💡 Pistas</h3>
+                <p class="text-sm text-gray-600 mb-3">Las pistas revelan la primera letra de la respuesta</p>
+                <div class="space-y-2">
+                    <button onclick="buyHints(1)" class="w-full py-2 bg-yellow-400 hover:bg-yellow-500 text-white font-bold rounded-lg transition">
+                        Comprar 1 pista - 50 💰
+                    </button>
+                    <button onclick="buyHints(5)" class="w-full py-2 bg-yellow-500 hover:bg-yellow-600 text-white font-bold rounded-lg transition">
+                        Comprar 5 pistas - 200 💰 (Ahorra 50)
+                    </button>
+                    <button onclick="buyHints(10)" class="w-full py-2 bg-yellow-600 hover:bg-yellow-700 text-white font-bold rounded-lg transition">
+                        Comprar 10 pistas - 350 💰 (Ahorra 150)
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border-2 border-green-300">
+                <h3 class="text-lg font-bold mb-2">📺 Anuncios</h3>
+                <p class="text-sm text-gray-600 mb-3">Mira un anuncio y gana monedas gratis</p>
+                <button id="watch-ad-btn" onclick="watchAd()" class="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg transition">
+                    Ver Anuncio - Ganar 30 💰
+                </button>
+                <p id="ad-cooldown" class="text-xs text-gray-500 mt-2 text-center hidden"></p>
+            </div>
+
+            <button onclick="showModeSelection()" class="w-full py-2 text-sm text-gray-600 hover:text-indigo-600 transition mt-4">
+                ⬅️ Volver a Modos
+            </button>
+        </div>
+
+        <div id="multiplayer-screen" class="hidden space-y-4">
+            <h2 class="text-2xl font-bold mb-4 text-center text-pink-600">👥 Multijugador</h2>
+            
+            <div class="bg-pink-50 p-4 rounded-xl border-2 border-pink-300">
+                <h3 class="text-lg font-bold mb-3">🏆 Tabla de Clasificación</h3>
+                <div id="leaderboard-container" class="space-y-2">
+                    <p class="text-center text-gray-500">Cargando...</p>
+                </div>
+            </div>
+
+            <div class="bg-indigo-50 p-4 rounded-xl border-2 border-indigo-300">
+                <h3 class="text-lg font-bold mb-3">Tu Perfil</h3>
+                <p class="text-sm mb-2">Nombre: <span id="player-name-display" class="font-bold">Jugador</span></p>
+                <input type="text" id="player-name-input" placeholder="Ingresa tu nombre" class="w-full p-2 border-2 border-gray-300 rounded-lg mb-2" maxlength="20">
+                <button onclick="updatePlayerName()" class="w-full py-2 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-lg transition">
+                    Actualizar Nombre
+                </button>
+            </div>
+
+            <button onclick="startGame('Multijugador')" class="w-full py-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl transition shadow-lg">
+                🎮 Jugar Multijugador
+            </button>
+
+            <button onclick="showModeSelection()" class="w-full py-2 text-sm text-gray-600 hover:text-indigo-600 transition mt-4">
+                ⬅️ Volver a Modos
             </button>
         </div>
 
@@ -144,6 +211,7 @@
 
     const state = {
         coins: 0,
+        hints: 0,
         currentStreak: 0,
         mode: null,
         questions: [],
@@ -152,6 +220,8 @@
         usedLetters: [],
         timerInterval: null,
         timeLeft: TIME_LIMIT,
+        playerId: null,
+        playerName: 'Jugador'
     };
 
     const dom = {
@@ -159,8 +229,11 @@
         mainContent: document.getElementById('main-content'),
         modeSelection: document.getElementById('mode-selection'),
         gameScreen: document.getElementById('game-screen'),
+        shopScreen: document.getElementById('shop-screen'),
+        multiplayerScreen: document.getElementById('multiplayer-screen'),
         currentModeDisplay: document.getElementById('current-mode'),
         coinsDisplay: document.getElementById('coins-display'),
+        hintsDisplay: document.getElementById('hints-display'),
         streakDisplay: document.getElementById('streak-display'),
         questionText: document.getElementById('question-text'),
         questionValue: document.getElementById('question-value'),
@@ -288,6 +361,7 @@
     }
 
     function updateCoinsDisplay() { dom.coinsDisplay.textContent = state.coins; }
+    function updateHintsDisplay() { dom.hintsDisplay.textContent = state.hints; }
     function updateStreakDisplay() { dom.streakDisplay.textContent = state.currentStreak; }
 
     function showTemporaryFeedback(element, message, colorClass) {
@@ -300,6 +374,8 @@
     function resetView() {
         dom.modeSelection.classList.remove('hidden');
         dom.gameScreen.classList.add('hidden');
+        dom.shopScreen.classList.add('hidden');
+        dom.multiplayerScreen.classList.add('hidden');
         dom.modalContainer.classList.add('hidden');
     }
 
@@ -324,6 +400,11 @@
             shuffleArray(state.questions);
             state.currentStreak = 0;
             dom.streakDisplay.parentElement.classList.remove('hidden');
+        } else if (mode === 'Multijugador') {
+            state.questions = [...adventureQuestions];
+            shuffleArray(state.questions);
+            state.questions = state.questions.slice(0, 20);
+            dom.streakDisplay.parentElement.classList.add('hidden');
         } else {
             state.questions = [...adventureQuestions];
             shuffleArray(state.questions);
@@ -398,7 +479,7 @@
         
         dom.questionText.textContent = question.q;
         
-        const isAventura = state.mode === 'Aventura';
+        const isAventura = state.mode === 'Aventura' || state.mode === 'Multijugador';
         
         dom.rachaContainer.classList.toggle('hidden', isAventura);
         dom.aventuraContainer.classList.toggle('hidden', !isAventura);
@@ -433,7 +514,7 @@
         const currentQ = state.questions[state.currentQIndex];
         let userAnswer = '';
         
-        if (state.mode === 'Aventura') {
+        if (state.mode === 'Aventura' || state.mode === 'Multijugador') {
             userAnswer = state.currentAnswer.map(item => item.letter).join('');
             if (userAnswer.length !== currentQ.a.length) {
                 showTemporaryFeedback(dom.rachaFeedback, 'Por favor, completa todas las casillas.', 'text-red-500');
@@ -451,7 +532,7 @@
             } else {
                 handleRachaIncorrect(currentQ.a);
             }
-        } else if (state.mode === 'Aventura') {
+        } else if (state.mode === 'Aventura' || state.mode === 'Multijugador') {
             if (userAnswer === currentQ.a) { 
                 handleAventuraCorrect(currentQ);
             } else {
@@ -487,6 +568,7 @@
         const reward = currentQ.value;
         state.coins += reward;
         updateCoinsDisplay();
+        savePlayerData();
 
         dom.modalTitle.textContent = "¡Respuesta Correcta!";
         dom.modalTitle.classList.remove('text-red-600', 'text-indigo-600');
@@ -526,6 +608,7 @@
 
     function endGame(completed = true, message = null) {
         stopTimer();
+        savePlayerData();
         dom.modalContainer.classList.remove('hidden');
         
         if (state.mode === 'Racha') {
@@ -533,11 +616,11 @@
             dom.modalTitle.classList.remove('text-green-600');
             dom.modalTitle.classList.add(completed ? 'text-indigo-600' : 'text-red-600');
             dom.modalText.innerHTML = `Tu racha final fue de <span class="text-xl font-bold">${state.currentStreak}</span> aciertos.`;
-        } else if (state.mode === 'Aventura') {
+        } else if (state.mode === 'Aventura' || state.mode === 'Multijugador') {
             dom.modalTitle.textContent = "¡Partida Finalizada!";
             dom.modalTitle.classList.remove('text-red-600');
             dom.modalTitle.classList.add('text-indigo-600');
-            dom.modalText.innerHTML = `¡Completaste el modo Aventura! Total: <span class="text-indigo-600 font-bold">${state.coins} monedas</span>.`;
+            dom.modalText.innerHTML = `¡Completaste el modo ${state.mode}! Total: <span class="text-indigo-600 font-bold">${state.coins} monedas</span>.`;
         }
         
         dom.modalButtons.innerHTML = `
@@ -609,6 +692,11 @@
     }
 
     function showHint() {
+        if (state.hints <= 0) {
+            showTemporaryFeedback(dom.rachaFeedback, '¡No tienes pistas! Cómpralas en la tienda.', 'text-red-500');
+            return;
+        }
+
         const currentQ = state.questions[state.currentQIndex];
         const correctLetter = currentQ.a.charAt(0);
         
@@ -618,8 +706,263 @@
 
             if (targetButton) {
                 handleLetterClick(correctLetter, parseInt(targetButton.dataset.index), targetButton);
-                dom.hintButton.disabled = true;
+                state.hints--;
+                updateHintsDisplay();
+                savePlayerData();
+                showTemporaryFeedback(dom.rachaFeedback, '¡Pista usada! Te quedan ' + state.hints, 'text-indigo-500');
             }
+        }
+    }
+
+    // Funciones de Tienda
+    function showShop() {
+        resetView();
+        dom.shopScreen.classList.remove('hidden');
+        checkAdCooldown();
+    }
+
+    function buyHints(amount) {
+        const prices = { 1: 50, 5: 200, 10: 350 };
+        const cost = prices[amount];
+        
+        if (state.coins >= cost) {
+            state.coins -= cost;
+            state.hints += amount;
+            updateCoinsDisplay();
+            updateHintsDisplay();
+            savePlayerData();
+            
+            dom.modalTitle.textContent = "¡Compra Exitosa!";
+            dom.modalTitle.classList.remove('text-red-600');
+            dom.modalTitle.classList.add('text-green-600');
+            dom.modalText.innerHTML = `Compraste ${amount} pista${amount > 1 ? 's' : ''} por ${cost} 💰`;
+            dom.modalButtons.innerHTML = `
+                <button onclick="dom.modalContainer.classList.add('hidden')" class="w-full py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl transition">
+                    Continuar
+                </button>
+            `;
+            dom.modalContainer.classList.remove('hidden');
+        } else {
+            dom.modalTitle.textContent = "Monedas Insuficientes";
+            dom.modalTitle.classList.remove('text-green-600');
+            dom.modalTitle.classList.add('text-red-600');
+            dom.modalText.innerHTML = `Necesitas ${cost} 💰 pero solo tienes ${state.coins} 💰`;
+            dom.modalButtons.innerHTML = `
+                <button onclick="dom.modalContainer.classList.add('hidden')" class="w-full py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl transition">
+                    Entendido
+                </button>
+            `;
+            dom.modalContainer.classList.remove('hidden');
+        }
+    }
+
+    async function watchAd() {
+        const lastAdTime = localStorage.getItem('lastAdTime');
+        const now = Date.now();
+        const cooldown = 5 * 60 * 1000; // 5 minutos
+
+        if (lastAdTime && (now - parseInt(lastAdTime)) < cooldown) {
+            const remaining = Math.ceil((cooldown - (now - parseInt(lastAdTime))) / 1000 / 60);
+            dom.modalTitle.textContent = "Espera un momento";
+            dom.modalTitle.classList.remove('text-green-600');
+            dom.modalTitle.classList.add('text-yellow-600');
+            dom.modalText.innerHTML = `Podrás ver otro anuncio en ${remaining} minuto${remaining > 1 ? 's' : ''}`;
+            dom.modalButtons.innerHTML = `
+                <button onclick="dom.modalContainer.classList.add('hidden')" class="w-full py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl transition">
+                    Entendido
+                </button>
+            `;
+            dom.modalContainer.classList.remove('hidden');
+            return;
+        }
+
+        // Simular anuncio
+        dom.modalTitle.textContent = "📺 Viendo Anuncio...";
+        dom.modalTitle.classList.remove('text-red-600', 'text-yellow-600');
+        dom.modalTitle.classList.add('text-indigo-600');
+        dom.modalText.innerHTML = `
+            <div class="text-center">
+                <div class="animate-pulse text-4xl mb-3">📺</div>
+                <p>Espera 5 segundos...</p>
+                <div class="w-full bg-gray-200 rounded-full h-2 mt-3">
+                    <div id="ad-progress" class="bg-green-600 h-2 rounded-full transition-all" style="width: 0%"></div>
+                </div>
+            </div>
+        `;
+        dom.modalButtons.innerHTML = '';
+        dom.modalContainer.classList.remove('hidden');
+
+        // Simular progreso del anuncio
+        let progress = 0;
+        const adInterval = setInterval(() => {
+            progress += 20;
+            const progressBar = document.getElementById('ad-progress');
+            if (progressBar) progressBar.style.width = progress + '%';
+            
+            if (progress >= 100) {
+                clearInterval(adInterval);
+                completeAd();
+            }
+        }, 1000);
+    }
+
+    function completeAd() {
+        state.coins += 30;
+        updateCoinsDisplay();
+        savePlayerData();
+        localStorage.setItem('lastAdTime', Date.now().toString());
+        
+        dom.modalTitle.textContent = "¡Recompensa Recibida!";
+        dom.modalTitle.classList.add('text-green-600');
+        dom.modalText.innerHTML = `¡Ganaste 30 💰! Total: ${state.coins} 💰`;
+        dom.modalButtons.innerHTML = `
+            <button onclick="dom.modalContainer.classList.add('hidden'); checkAdCooldown();" class="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition">
+                ¡Genial!
+            </button>
+        `;
+    }
+
+    function checkAdCooldown() {
+        const lastAdTime = localStorage.getItem('lastAdTime');
+        const now = Date.now();
+        const cooldown = 5 * 60 * 1000;
+        const adBtn = document.getElementById('watch-ad-btn');
+        const adCooldown = document.getElementById('ad-cooldown');
+
+        if (lastAdTime && (now - parseInt(lastAdTime)) < cooldown) {
+            const remaining = Math.ceil((cooldown - (now - parseInt(lastAdTime))) / 1000 / 60);
+            adBtn.disabled = true;
+            adBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            adCooldown.textContent = `Disponible en ${remaining} minuto${remaining > 1 ? 's' : ''}`;
+            adCooldown.classList.remove('hidden');
+        } else {
+            adBtn.disabled = false;
+            adBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            adCooldown.classList.add('hidden');
+        }
+    }
+
+    // Funciones de Multijugador
+    function showMultiplayer() {
+        resetView();
+        dom.multiplayerScreen.classList.remove('hidden');
+        loadLeaderboard();
+    }
+
+    async function loadLeaderboard() {
+        const container = document.getElementById('leaderboard-container');
+        container.innerHTML = '<p class="text-center text-gray-500">Cargando...</p>';
+        
+        try {
+            const result = await window.storage.list('player:', true);
+            if (!result || !result.keys || result.keys.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500">No hay jugadores aún</p>';
+                return;
+            }
+
+            const players = [];
+            for (const key of result.keys) {
+                try {
+                    const playerData = await window.storage.get(key, true);
+                    if (playerData && playerData.value) {
+                        const data = JSON.parse(playerData.value);
+                        players.push(data);
+                    }
+                } catch (e) {
+                    console.error('Error loading player:', e);
+                }
+            }
+
+            players.sort((a, b) => (b.totalCoins || 0) - (a.totalCoins || 0));
+            
+            if (players.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500">No hay jugadores aún</p>';
+                return;
+            }
+
+            container.innerHTML = players.slice(0, 10).map((player, index) => `
+                <div class="flex justify-between items-center p-2 bg-white rounded-lg ${player.id === state.playerId ? 'border-2 border-pink-500' : ''}">
+                    <span class="font-bold">${index + 1}. ${player.name || 'Jugador'}</span>
+                    <span class="text-green-600 font-bold">${player.totalCoins || 0} 💰</span>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading leaderboard:', error);
+            container.innerHTML = '<p class="text-center text-red-500">Error al cargar clasificación</p>';
+        }
+    }
+
+    async function updatePlayerName() {
+        const input = document.getElementById('player-name-input');
+        const name = input.value.trim();
+        
+        if (!name) {
+            alert('Por favor ingresa un nombre');
+            return;
+        }
+
+        state.playerName = name;
+        document.getElementById('player-name-display').textContent = name;
+        await savePlayerData();
+        input.value = '';
+        
+        dom.modalTitle.textContent = "¡Nombre Actualizado!";
+        dom.modalTitle.classList.remove('text-red-600');
+        dom.modalTitle.classList.add('text-green-600');
+        dom.modalText.innerHTML = `Tu nombre ahora es: <strong>${name}</strong>`;
+        dom.modalButtons.innerHTML = `
+            <button onclick="dom.modalContainer.classList.add('hidden')" class="w-full py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl transition">
+                Continuar
+            </button>
+        `;
+        dom.modalContainer.classList.remove('hidden');
+    }
+
+    async function savePlayerData() {
+        try {
+            if (!state.playerId) {
+                state.playerId = 'player_' + Math.random().toString(36).substr(2, 9);
+            }
+
+            const playerData = {
+                id: state.playerId,
+                name: state.playerName || 'Jugador',
+                totalCoins: state.coins,
+                hints: state.hints,
+                lastUpdated: Date.now()
+            };
+
+            await window.storage.set('player:' + state.playerId, JSON.stringify(playerData), true);
+            localStorage.setItem('playerId', state.playerId);
+            localStorage.setItem('playerData', JSON.stringify({ coins: state.coins, hints: state.hints, name: state.playerName }));
+        } catch (error) {
+            console.error('Error saving player data:', error);
+        }
+    }
+
+    async function loadPlayerData() {
+        try {
+            const savedId = localStorage.getItem('playerId');
+            const savedData = localStorage.getItem('playerData');
+            
+            if (savedData) {
+                const data = JSON.parse(savedData);
+                state.coins = data.coins || 0;
+                state.hints = data.hints || 0;
+                state.playerName = data.name || 'Jugador';
+                updateCoinsDisplay();
+                updateHintsDisplay();
+            }
+
+            if (savedId) {
+                state.playerId = savedId;
+                document.getElementById('player-name-display').textContent = state.playerName;
+            } else {
+                state.playerId = 'player_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem('playerId', state.playerId);
+            }
+        } catch (error) {
+            console.error('Error loading player data:', error);
         }
     }
 
@@ -630,10 +973,16 @@
     window.showHint = showHint;
     window.undoLastLetter = undoLastLetter;
     window.goToNextQuestion = goToNextQuestion;
+    window.showShop = showShop;
+    window.buyHints = buyHints;
+    window.watchAd = watchAd;
+    window.showMultiplayer = showMultiplayer;
+    window.updatePlayerName = updatePlayerName;
 
     window.onload = async function() {
         const loaded = await loadQuestionsFromAPI();
         if (loaded) {
+            await loadPlayerData();
             document.getElementById('loading-screen').classList.add('hidden');
             document.getElementById('main-content').classList.remove('hidden');
             showModeSelection();
