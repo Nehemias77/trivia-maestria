@@ -54,6 +54,9 @@
             border-bottom-color: #ef4444;
         }
     </style>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -398,6 +401,86 @@
     const TIME_LIMIT = 15;
     const MAX_TIME_LIMIT = 30;
     const MP_TIME_LIMIT = 15;
+
+    // Configuración de Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyB400ygHxKjrlTblU_WgFMyxZw8WcvmWEE",
+        authDomain: "trivia-maestra-db638.firebaseapp.com",
+        databaseURL: "https://trivia-maestra-db638-default-rtdb.firebaseio.com",
+        projectId: "trivia-maestra-db638",
+        storageBucket: "trivia-maestra-db638.firebasestorage.app",
+        messagingSenderId: "935977438176",
+        appId: "1:935977438176:web:5730480f520ba511687985",
+        measurementId: "G-W82LVG2L7H"
+    };
+
+    // Inicializar Firebase
+    let database = null;
+    try {
+        firebase.initializeApp(firebaseConfig);
+        database = firebase.database();
+        console.log('✅ Firebase conectado');
+    } catch (error) {
+        console.error('❌ Error conectando Firebase:', error);
+    }
+
+    // Adaptador de almacenamiento que simula window.storage pero usa Firebase
+    window.storage = {
+        async set(key, value, shared = false) {
+            if (!database) return null;
+            try {
+                const path = shared ? `shared/${key}` : `users/${key}`;
+                await database.ref(path).set(value);
+                return { key, value, shared };
+            } catch (error) {
+                console.error('Error en set:', error);
+                return null;
+            }
+        },
+        
+        async get(key, shared = false) {
+            if (!database) return null;
+            try {
+                const path = shared ? `shared/${key}` : `users/${key}`;
+                const snapshot = await database.ref(path).once('value');
+                const value = snapshot.val();
+                if (value === null) throw new Error('Key not found');
+                return { key, value, shared };
+            } catch (error) {
+                throw error;
+            }
+        },
+        
+        async delete(key, shared = false) {
+            if (!database) return null;
+            try {
+                const path = shared ? `shared/${key}` : `users/${key}`;
+                await database.ref(path).remove();
+                return { key, deleted: true, shared };
+            } catch (error) {
+                console.error('Error en delete:', error);
+                return null;
+            }
+        },
+        
+        async list(prefix = '', shared = false) {
+            if (!database) return null;
+            try {
+                const path = shared ? `shared` : `users`;
+                const snapshot = await database.ref(path).once('value');
+                const data = snapshot.val();
+                if (!data) return { keys: [], prefix, shared };
+                
+                const keys = Object.keys(data).filter(key => 
+                    !prefix || key.startsWith(prefix)
+                );
+                return { keys, prefix, shared };
+            } catch (error) {
+                console.error('Error en list:', error);
+                return { keys: [], prefix, shared };
+            }
+        }
+    };
 
     const state = {
         coins: 0,
@@ -1174,15 +1257,14 @@
             return;
         }
 
-        // ✅ AGREGADO: Verificar si window.storage está disponible
-        if (!window.storage) {
-            alert('El almacenamiento persistente no está disponible. El modo multijugador requiere esta función.');
+        if (!window.storage || !database) {
+            alert('No se pudo conectar a Firebase. Verifica tu configuración.');
             return;
         }
 
         state.playerName = playerName;
         const roomCode = generateRoomCode();
-    
+        
         const roomData = {
             code: roomCode,
             host: state.playerId,
@@ -1201,18 +1283,30 @@
         };
 
         try {
+            // Mostrar mensaje de "creando..."
+            const btn = event.target;
+            btn.disabled = true;
+            btn.textContent = 'Creando sala...';
+            
             const result = await window.storage.set('room:' + roomCode, JSON.stringify(roomData), true);
-            // ✅ AGREGADO: Verificar si el resultado es exitoso
+            
             if (!result) {
-                throw new Error('No se pudo crear la sala');
+                throw new Error('No se pudo crear la sala en Firebase');
             }
+            
             state.currentRoom = roomCode;
             state.isHost = true;
             joinWaitingRoom(roomData);
         } catch (error) {
             console.error('Error creando sala:', error);
-            // ✅ MEJORADO: Mensaje de error más detallado
             alert('Error al crear la sala: ' + error.message);
+            
+            // Restaurar botón
+            const btn = document.querySelector('#create-room-screen button');
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = 'Crear Sala';
+            }
         }
     }
     async function joinRoom() {
