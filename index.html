@@ -71,11 +71,24 @@
         <!-- MENU PRINCIPAL -->
         <div id="mode-selection" class="space-y-4">
             <h2 class="text-xl font-semibold mb-4 text-center">Selecciona tu Desafío</h2>
+            
+            <!-- Mostrar monedas y pistas en el menú principal -->
+            <div class="mb-4 p-3 bg-gradient-to-r from-yellow-50 to-green-50 rounded-xl border-2 border-yellow-300 flex justify-around items-center">
+                <div class="text-center">
+                    <p class="text-xs text-gray-600">Monedas</p>
+                    <p class="text-2xl font-bold text-green-600">💰 <span id="menu-coins-display">0</span></p>
+                </div>
+                <div class="text-center">
+                    <p class="text-xs text-gray-600">Pistas</p>
+                    <p class="text-2xl font-bold text-yellow-600">💡 <span id="menu-hints-display">0</span></p>
+                </div>
+            </div>
+            
             <button onclick="startGame('Racha')" class="w-full py-3 px-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl transition shadow-lg shadow-indigo-300/50">
-                🔥 Modo Racha (200 preguntas)
+                🔥 Modo Racha 
             </button>
             <button onclick="startGame('Aventura')" class="w-full py-3 px-4 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-xl transition shadow-lg shadow-purple-300/50">
-                🎮 Modo Aventura (200 preguntas)
+                🎮 Modo Aventura 
             </button>
             <button onclick="showMultiplayer()" class="w-full py-3 px-4 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl transition shadow-lg shadow-pink-300/50">
                 👥 Modo Multijugador
@@ -545,11 +558,17 @@
 
     function updateCoinsDisplay() { 
         dom.coinsDisplay.textContent = state.coins; 
-        const display = document.getElementById('player-coins-display');
-        if (display) display.textContent = state.coins;
+        const playerDisplay = document.getElementById('player-coins-display');
+        if (playerDisplay) playerDisplay.textContent = state.coins;
+        const menuDisplay = document.getElementById('menu-coins-display');
+        if (menuDisplay) menuDisplay.textContent = state.coins;
     }
     
-    function updateHintsDisplay() { dom.hintsDisplay.textContent = state.hints; }
+    function updateHintsDisplay() { 
+        dom.hintsDisplay.textContent = state.hints;
+        const menuDisplay = document.getElementById('menu-hints-display');
+        if (menuDisplay) menuDisplay.textContent = state.hints;
+    }
     function updateStreakDisplay() { dom.streakDisplay.textContent = state.currentStreak; }
 
     function showTemporaryFeedback(element, message, colorClass) {
