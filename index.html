@@ -1742,7 +1742,7 @@
                 lastUpdated: Date.now()
             };
 
-            await window.storage.set('player:' + state.playerId, JSON.stringify(playerData), true);
+            // Guardar en localStorage primero (siempre funciona)
             localStorage.setItem('playerId', state.playerId);
             localStorage.setItem('playerData', JSON.stringify({ 
                 coins: state.coins, 
@@ -1750,6 +1750,15 @@
                 name: state.playerName,
                 timeLimit: state.timeLimit
             }));
+
+            // Intentar guardar en window.storage para el leaderboard
+            if (window.storage) {
+                try {
+                    await window.storage.set('player:' + state.playerId, JSON.stringify(playerData), true);
+                } catch (storageError) {
+                    console.log('Window storage no disponible, usando solo localStorage');
+                }
+            }
         } catch (error) {
             console.error('Error saving player data:', error);
         }
