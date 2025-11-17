@@ -1155,9 +1155,15 @@
             return;
         }
 
+        // ✅ AGREGADO: Verificar si window.storage está disponible
+        if (!window.storage) {
+            alert('El almacenamiento persistente no está disponible. El modo multijugador requiere esta función.');
+            return;
+        }
+
         state.playerName = playerName;
         const roomCode = generateRoomCode();
-        
+    
         const roomData = {
             code: roomCode,
             host: state.playerId,
@@ -1176,16 +1182,20 @@
         };
 
         try {
-            await window.storage.set('room:' + roomCode, JSON.stringify(roomData), true);
+            const result = await window.storage.set('room:' + roomCode, JSON.stringify(roomData), true);
+            // ✅ AGREGADO: Verificar si el resultado es exitoso
+            if (!result) {
+                throw new Error('No se pudo crear la sala');
+            }
             state.currentRoom = roomCode;
             state.isHost = true;
             joinWaitingRoom(roomData);
         } catch (error) {
             console.error('Error creando sala:', error);
-            alert('Error al crear la sala');
+            // ✅ MEJORADO: Mensaje de error más detallado
+            alert('Error al crear la sala: ' + error.message);
         }
     }
-
     async function joinRoom() {
         const playerName = document.getElementById('join-player-name').value.trim();
         const roomCode = document.getElementById('room-code-input').value.trim().toUpperCase();
@@ -1742,7 +1752,7 @@
                 lastUpdated: Date.now()
             };
 
-            // Guardar en localStorage primero (siempre funciona)
+            // ✅ CAMBIADO: Guardar en localStorage primero (siempre funciona)
             localStorage.setItem('playerId', state.playerId);
             localStorage.setItem('playerData', JSON.stringify({ 
                 coins: state.coins, 
@@ -1751,7 +1761,7 @@
                 timeLimit: state.timeLimit
             }));
 
-            // Intentar guardar en window.storage para el leaderboard
+            // ✅ AGREGADO: Intentar guardar en window.storage si está disponible
             if (window.storage) {
                 try {
                     await window.storage.set('player:' + state.playerId, JSON.stringify(playerData), true);
@@ -1768,24 +1778,26 @@
         try {
             const savedId = localStorage.getItem('playerId');
             const savedData = localStorage.getItem('playerData');
-            
+        
             if (savedData) {
                 const data = JSON.parse(savedData);
                 state.coins = data.coins || 0;
                 state.hints = data.hints || 0;
                 state.playerName = data.name || 'Jugador';
                 state.timeLimit = data.timeLimit || TIME_LIMIT;
-                updateCoinsDisplay();
-                updateHintsDisplay();
             }
 
             if (savedId) {
                 state.playerId = savedId;
-                document.getElementById('player-name-display').textContent = state.playerName;
             } else {
                 state.playerId = 'player_' + Math.random().toString(36).substr(2, 9);
                 localStorage.setItem('playerId', state.playerId);
             }
+        
+            // ✅ AGREGADO: Actualizar displays siempre
+            updateCoinsDisplay();
+            updateHintsDisplay();
+            document.getElementById('player-name-display').textContent = state.playerName;
         } catch (error) {
             console.error('Error loading player data:', error);
         }
