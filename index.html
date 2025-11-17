@@ -420,6 +420,15 @@
         firebase.initializeApp(firebaseConfig);
         database = firebase.database();
         console.log('✅ Firebase conectado');
+    
+        // 🔍 DIAGNÓSTICO TEMPORAL - Probar conexión
+        database.ref('.info/connected').on('value', (snapshot) => {
+            if (snapshot.val() === true) {
+                console.log('✅ Firebase: Conexión activa');
+            } else {
+                console.log('❌ Firebase: Sin conexión');
+            }
+        });
     } catch (error) {
         console.error('❌ Error conectando Firebase:', error);
     }
@@ -427,61 +436,77 @@
     // Adaptador de almacenamiento que simula window.storage pero usa Firebase
     window.storage = {
         async set(key, value, shared = false) {
-            if (!database) return null;
+            if (!database) {
+                console.error('❌ Firebase no disponible');
+                throw new Error('Firebase no está conectado');
+            }
             try {
                 const path = shared ? `shared/${key}` : `users/${key}`;
                 await database.ref(path).set(value);
+                console.log('✅ Guardado:', path);
                 return { key, value, shared };
             } catch (error) {
-                console.error('Error en set:', error);
-                return null;
+                console.error('❌ Error en set:', error);
+                throw error;
             }
         },
-        
+    
         async get(key, shared = false) {
-            if (!database) return null;
+            if (!database) {
+                console.error('❌ Firebase no disponible');
+                throw new Error('Firebase no está conectado');
+            }
             try {
                 const path = shared ? `shared/${key}` : `users/${key}`;
                 const snapshot = await database.ref(path).once('value');
                 const value = snapshot.val();
                 if (value === null) throw new Error('Key not found');
+                console.log('✅ Obtenido:', path);
                 return { key, value, shared };
             } catch (error) {
+                console.error('❌ Error en get:', path, error.message);
                 throw error;
             }
         },
-        
+    
         async delete(key, shared = false) {
-            if (!database) return null;
+            if (!database) {
+                console.error('❌ Firebase no disponible');
+                throw new Error('Firebase no está conectado');
+            }
             try {
                 const path = shared ? `shared/${key}` : `users/${key}`;
                 await database.ref(path).remove();
+                console.log('✅ Eliminado:', path);
                 return { key, deleted: true, shared };
             } catch (error) {
-                console.error('Error en delete:', error);
-                return null;
+                console.error('❌ Error en delete:', error);
+                throw error;
             }
         },
-        
+    
         async list(prefix = '', shared = false) {
-            if (!database) return null;
+            if (!database) {
+                console.error('❌ Firebase no disponible');
+                throw new Error('Firebase no está conectado');
+            }
             try {
                 const path = shared ? `shared` : `users`;
                 const snapshot = await database.ref(path).once('value');
                 const data = snapshot.val();
                 if (!data) return { keys: [], prefix, shared };
-                
+            
                 const keys = Object.keys(data).filter(key => 
                     !prefix || key.startsWith(prefix)
                 );
+                console.log('✅ Listado:', keys.length, 'claves');
                 return { keys, prefix, shared };
             } catch (error) {
-                console.error('Error en list:', error);
-                return { keys: [], prefix, shared };
+                console.error('❌ Error en list:', error);
+                throw error;
             }
         }
     };
-
     const state = {
         coins: 0,
         hints: 0,
@@ -1257,14 +1282,14 @@
             return;
         }
 
-        if (!window.storage || !database) {
-            alert('No se pudo conectar a Firebase. Verifica tu configuración.');
+        if (!database) {
+            alert('❌ Error: No hay conexión con Firebase.\n\nPor favor:\n1. Verifica tu conexión a internet\n2. Revisa la consola (F12) para más detalles\n3. Recarga la página');
             return;
         }
 
         state.playerName = playerName;
         const roomCode = generateRoomCode();
-        
+    
         const roomData = {
             code: roomCode,
             host: state.playerId,
@@ -1283,25 +1308,22 @@
         };
 
         try {
-            // Mostrar mensaje de "creando..."
-            const btn = event.target;
+            const btn = document.querySelector('#create-room-screen button');
             btn.disabled = true;
             btn.textContent = 'Creando sala...';
-            
-            const result = await window.storage.set('room:' + roomCode, JSON.stringify(roomData), true);
-            
-            if (!result) {
-                throw new Error('No se pudo crear la sala en Firebase');
-            }
-            
+        
+            // Usar Firebase directamente
+            await database.ref('shared/room:' + roomCode).set(roomData);
+        
+            console.log('✅ Sala creada exitosamente:', roomCode);
+        
             state.currentRoom = roomCode;
             state.isHost = true;
             joinWaitingRoom(roomData);
         } catch (error) {
-            console.error('Error creando sala:', error);
-            alert('Error al crear la sala: ' + error.message);
-            
-            // Restaurar botón
+            console.error('❌ Error creando sala:', error);
+            alert('Error al crear la sala:\n' + error.message + '\n\nRevisa la consola (F12) para más detalles.');
+        
             const btn = document.querySelector('#create-room-screen button');
             if (btn) {
                 btn.disabled = false;
@@ -1309,6 +1331,7 @@
             }
         }
     }
+    
     async function joinRoom() {
         const playerName = document.getElementById('join-player-name').value.trim();
         const roomCode = document.getElementById('room-code-input').value.trim().toUpperCase();
@@ -1865,7 +1888,7 @@
                 lastUpdated: Date.now()
             };
 
-            // ✅ CAMBIADO: Guardar en localStorage primero (siempre funciona)
+            // Guardar en localStorage siempre
             localStorage.setItem('playerId', state.playerId);
             localStorage.setItem('playerData', JSON.stringify({ 
                 coins: state.coins, 
@@ -1874,12 +1897,13 @@
                 timeLimit: state.timeLimit
             }));
 
-            // ✅ AGREGADO: Intentar guardar en window.storage si está disponible
-            if (window.storage) {
+            // Intentar guardar en Firebase
+            if (database) {
                 try {
-                    await window.storage.set('player:' + state.playerId, JSON.stringify(playerData), true);
-                } catch (storageError) {
-                    console.log('Window storage no disponible, usando solo localStorage');
+                    await database.ref('players/' + state.playerId).set(playerData);
+                    console.log('✅ Datos guardados en Firebase');
+                } catch (fbError) {
+                    console.log('⚠️ No se pudo guardar en Firebase, pero datos locales guardados');
                 }
             }
         } catch (error) {
