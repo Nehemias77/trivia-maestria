@@ -442,9 +442,13 @@
             }
             try {
                 const path = shared ? `shared/${key}` : `users/${key}`;
-                await database.ref(path).set(value);
+                // ✅ Si value es string que parece JSON, parsearlo primero
+                const dataToSave = typeof value === 'string' && value.startsWith('{') 
+                    ? JSON.parse(value) 
+                    : value;
+                await database.ref(path).set(dataToSave);
                 console.log('✅ Guardado:', path);
-                return { key, value, shared };
+                return { key, value: dataToSave, shared };
             } catch (error) {
                 console.error('❌ Error en set:', error);
                 throw error;
@@ -462,6 +466,7 @@
                 const value = snapshot.val();
                 if (value === null) throw new Error('Key not found');
                 console.log('✅ Obtenido:', path);
+                // ✅ Firebase ya devuelve objetos, NO hacer JSON.parse
                 return { key, value, shared };
             } catch (error) {
                 console.error('❌ Error en get:', path, error.message);
@@ -507,6 +512,7 @@
             }
         }
     };
+    
     const state = {
         coins: 0,
         hints: 0,
@@ -1355,7 +1361,8 @@
                 return;
             }
 
-            const roomData = JSON.parse(result.value);
+            // ✅ CAMBIO: Eliminar JSON.parse
+            const roomData = result.value;
 
             if (roomData.players.length >= roomData.maxPlayers) {
                 alert('La sala está llena');
@@ -1376,7 +1383,8 @@
                     ready: false
                 });
 
-                await window.storage.set('room:' + roomCode, JSON.stringify(roomData), true);
+                // ✅ CAMBIO: No hacer JSON.stringify
+                await window.storage.set('room:' + roomCode, roomData, true);
             }
 
             state.currentRoom = roomCode;
@@ -1387,7 +1395,7 @@
             alert('Error al unirse a la sala');
         }
     }
-
+    
     function joinWaitingRoom(roomData) {
         resetView();
         dom.multiplayerScreen.classList.remove('hidden');
@@ -1424,7 +1432,7 @@
 
     function startRoomPolling() {
         stopRoomPolling();
-        
+    
         state.roomPollingInterval = setInterval(async () => {
             if (!state.currentRoom) {
                 stopRoomPolling();
@@ -1440,8 +1448,9 @@
                     return;
                 }
 
-                const roomData = JSON.parse(result.value);
-                
+                // ✅ CAMBIO: Eliminar JSON.parse
+                const roomData = result.value;
+            
                 if (roomData.status === 'playing') {
                     stopRoomPolling();
                     startMultiplayerGameSession(roomData);
@@ -1467,7 +1476,8 @@
         try {
             const result = await window.storage.get('room:' + state.currentRoom, true);
             if (result) {
-                const roomData = JSON.parse(result.value);
+                // ✅ CAMBIO: Eliminar JSON.parse
+                const roomData = result.value;
                 roomData.players = roomData.players.filter(p => p.id !== state.playerId);
 
                 if (roomData.players.length === 0 || state.isHost) {
@@ -1476,7 +1486,8 @@
                     if (state.isHost && roomData.players.length > 0) {
                         roomData.host = roomData.players[0].id;
                     }
-                    await window.storage.set('room:' + state.currentRoom, JSON.stringify(roomData), true);
+                    // ✅ CAMBIO: No hacer JSON.stringify
+                    await window.storage.set('room:' + state.currentRoom, roomData, true);
                 }
             }
         } catch (error) {
@@ -1494,7 +1505,8 @@
             const result = await window.storage.get('room:' + state.currentRoom, true);
             if (!result) return;
 
-            const roomData = JSON.parse(result.value);
+            // ✅ CAMBIO: Eliminar JSON.parse
+            const roomData = result.value;
 
             if (roomData.players.length < 2) {
                 alert('Se necesitan al menos 2 jugadores para comenzar');
@@ -1507,7 +1519,8 @@
             roomData.status = 'playing';
             roomData.currentRound = 0;
 
-            await window.storage.set('room:' + state.currentRoom, JSON.stringify(roomData), true);
+            // ✅ CAMBIO: No hacer JSON.stringify
+            await window.storage.set('room:' + state.currentRoom, roomData, true);
         } catch (error) {
             console.error('Error iniciando partida:', error);
             alert('Error al iniciar la partida');
@@ -1585,7 +1598,8 @@
             const result = await window.storage.get('room:' + state.currentRoom, true);
             if (!result) return;
 
-            const roomData = JSON.parse(result.value);
+            // ✅ CAMBIO: Eliminar JSON.parse
+            const roomData = result.value;
             const currentQ = roomData.questions[roomData.currentRound];
             const userAnswer = document.getElementById('mp-answer-input').value.toUpperCase().trim();
             const isCorrect = areAnswersClose(userAnswer, currentQ.a);
@@ -1599,7 +1613,8 @@
                 roomData.players[playerIndex].answered = true;
             }
 
-            await window.storage.set('room:' + state.currentRoom, JSON.stringify(roomData), true);
+            // ✅ CAMBIO: No hacer JSON.stringify
+            await window.storage.set('room:' + state.currentRoom, roomData, true);
 
             document.getElementById('mp-answer-input').disabled = true;
             document.getElementById('mp-check-button').disabled = true;
@@ -1615,18 +1630,19 @@
             console.error('Error enviando respuesta:', error);
         }
     }
-
+    
     async function handleMultiplayerTimeout() {
         if (state.hasAnswered) return;
-        
-        stopTimer();
+    
+            stopTimer();
         state.hasAnswered = true;
 
         try {
             const result = await window.storage.get('room:' + state.currentRoom, true);
             if (!result) return;
 
-            const roomData = JSON.parse(result.value);
+            // ✅ CAMBIO: Eliminar JSON.parse
+            const roomData = result.value;
             const currentQ = roomData.questions[roomData.currentRound];
 
             const playerIndex = roomData.players.findIndex(p => p.id === state.playerId);
@@ -1634,7 +1650,8 @@
                 roomData.players[playerIndex].answered = true;
             }
 
-            await window.storage.set('room:' + state.currentRoom, JSON.stringify(roomData), true);
+            // ✅ CAMBIO: No hacer JSON.stringify
+            await window.storage.set('room:' + state.currentRoom, roomData, true);
 
             document.getElementById('mp-answer-input').disabled = true;
             document.getElementById('mp-check-button').disabled = true;
@@ -1658,7 +1675,7 @@
 
     function startMultiplayerPolling() {
         stopRoomPolling();
-        
+    
         state.roomPollingInterval = setInterval(async () => {
             if (!state.currentRoom) {
                 stopRoomPolling();
@@ -1674,17 +1691,19 @@
                     return;
                 }
 
-                const roomData = JSON.parse(result.value);
-                
+                // ✅ CAMBIO: Eliminar JSON.parse
+                const roomData = result.value;
+            
                 if (state.hasAnswered) {
                     updateMultiplayerWaitingCount(roomData);
-                    
+                
                     const allAnswered = roomData.players.every(p => p.answered);
-                    
+                
                     if (allAnswered && state.isHost) {
                         roomData.players.forEach(p => p.answered = false);
                         roomData.currentRound++;
-                        await window.storage.set('room:' + state.currentRoom, JSON.stringify(roomData), true);
+                        // ✅ CAMBIO: No hacer JSON.stringify
+                        await window.storage.set('room:' + state.currentRoom, roomData, true);
                     }
                 }
 
@@ -1699,7 +1718,7 @@
             }
         }, 1000);
     }
-
+    
     function showMultiplayerResults(roomData) {
         stopTimer();
         stopRoomPolling();
@@ -1754,7 +1773,7 @@
     async function loadAvailableRooms() {
         const container = document.getElementById('available-rooms');
         container.innerHTML = '<p class="text-center text-gray-500">Cargando...</p>';
-        
+    
         try {
             const result = await window.storage.list('room:', true);
             if (!result || !result.keys || result.keys.length === 0) {
@@ -1767,7 +1786,8 @@
                 try {
                     const roomResult = await window.storage.get(key, true);
                     if (roomResult && roomResult.value) {
-                        const room = JSON.parse(roomResult.value);
+                        // ✅ CAMBIO: Eliminar JSON.parse
+                        const room = roomResult.value;
                         if (room.status === 'waiting') {
                             rooms.push(room);
                         }
@@ -1798,7 +1818,7 @@
             container.innerHTML = '<p class="text-center text-red-500">Error al cargar salas</p>';
         }
     }
-
+    
     async function quickJoinRoom(roomCode) {
         document.getElementById('room-code-input').value = roomCode;
         await joinRoom();
@@ -1807,7 +1827,7 @@
     async function loadLeaderboard() {
         const container = document.getElementById('leaderboard-container');
         container.innerHTML = '<p class="text-center text-gray-500">Cargando...</p>';
-        
+    
         try {
             const result = await window.storage.list('player:', true);
             if (!result || !result.keys || result.keys.length === 0) {
@@ -1820,7 +1840,8 @@
                 try {
                     const playerData = await window.storage.get(key, true);
                     if (playerData && playerData.value) {
-                        const data = JSON.parse(playerData.value);
+                        // ✅ CAMBIO: Eliminar JSON.parse
+                        const data = playerData.value;
                         players.push(data);
                     }
                 } catch (e) {
@@ -1829,7 +1850,7 @@
             }
 
             players.sort((a, b) => (b.totalCoins || 0) - (a.totalCoins || 0));
-            
+        
             if (players.length === 0) {
                 container.innerHTML = '<p class="text-center text-gray-500">No hay jugadores aún</p>';
                 return;
@@ -1888,19 +1909,17 @@
                 lastUpdated: Date.now()
             };
 
-            // Guardar en localStorage siempre
             localStorage.setItem('playerId', state.playerId);
             localStorage.setItem('playerData', JSON.stringify({ 
                 coins: state.coins, 
-                hints: state.hints, 
-                name: state.playerName,
+                hints: state.hints,             name: state.playerName,
                 timeLimit: state.timeLimit
             }));
 
-            // Intentar guardar en Firebase
             if (database) {
                 try {
-                    await database.ref('players/' + state.playerId).set(playerData);
+                    // ✅ CAMBIO: Usar window.storage en lugar de Firebase directamente
+                    await window.storage.set('player:' + state.playerId, playerData, true);
                     console.log('✅ Datos guardados en Firebase');
                 } catch (fbError) {
                     console.log('⚠️ No se pudo guardar en Firebase, pero datos locales guardados');
