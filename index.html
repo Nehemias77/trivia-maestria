@@ -66,14 +66,7 @@
     </div>
 
     <div id="main-content" class="hidden">
-        <div id="game-info" class="mb-4 p-3 bg-gray-100 rounded-xl flex justify-between items-center text-sm font-semibold">
-            <span class="text-gray-700">Modo: <span id="current-mode">N/A</span></span>
-            <span id="score-display-racha" class="text-red-600 flex items-center hidden">Racha: <span id="streak-display">0</span></span>
-            <span id="score-display-aventura" class="text-green-600 flex items-center">
-                💰 <span id="coins-display">0</span> | 💡 <span id="hints-display">0</span>
-            </span>
-        </div>
-
+        <!-- MENU PRINCIPAL -->
         <div id="mode-selection" class="space-y-4">
             <h2 class="text-xl font-semibold mb-4 text-center">Selecciona tu Desafío</h2>
             <button onclick="startGame('Racha')" class="w-full py-3 px-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl transition shadow-lg shadow-indigo-300/50">
@@ -90,10 +83,20 @@
             </button>
         </div>
 
+        <!-- PANTALLA DE JUEGO -->
         <div id="game-screen" class="hidden">
+            <div class="mb-4 p-3 bg-gray-100 rounded-xl flex justify-between items-center text-sm font-semibold">
+                <span class="text-gray-700">Modo: <span id="current-mode">N/A</span></span>
+                <span id="score-display-racha" class="text-red-600 flex items-center hidden">Racha: <span id="streak-display">0</span></span>
+                <span id="score-display-aventura" class="text-green-600 flex items-center">
+                    💰 <span id="coins-display">0</span> | 💡 <span id="hints-display">0</span>
+                </span>
+            </div>
+
             <div id="racha-timer" class="text-2xl font-extrabold text-center mb-4 p-2 rounded-lg bg-red-100 text-red-600 transition duration-300 hidden">
                 Tiempo: 15s
             </div>
+
             <div class="relative mb-6 p-4 bg-indigo-50 rounded-xl shadow-inner border-l-4 border-indigo-400">
                 <p id="question-text" class="text-lg font-medium text-center text-indigo-900"></p>
                 <p id="question-value" class="text-xs text-gray-500 mt-2 text-right"></p>
@@ -128,6 +131,7 @@
             </button>
         </div>
 
+        <!-- PANTALLA DE TIENDA -->
         <div id="shop-screen" class="hidden space-y-4">
             <h2 class="text-2xl font-bold mb-4 text-center text-yellow-600">🛒 Tienda</h2>
             
@@ -147,6 +151,22 @@
                 </div>
             </div>
 
+            <div class="bg-gradient-to-r from-blue-50 to-cyan-50 p-4 rounded-xl border-2 border-blue-300">
+                <h3 class="text-lg font-bold mb-2">⏰ Tiempo Extra (Modo Racha)</h3>
+                <p class="text-sm text-gray-600 mb-3">Aumenta tu tiempo límite hasta 30 segundos</p>
+                <div class="mb-3">
+                    <p class="text-sm">Tiempo actual: <span id="time-limit-display" class="font-bold text-blue-600">15s</span></p>
+                </div>
+                <div class="space-y-2">
+                    <button onclick="buyTime(5)" class="w-full py-2 bg-blue-400 hover:bg-blue-500 text-white font-bold rounded-lg transition">
+                        +5 segundos - 100 💰
+                    </button>
+                    <button onclick="buyTime(10)" class="w-full py-2 bg-blue-500 hover:bg-blue-600 text-white font-bold rounded-lg transition">
+                        +10 segundos - 150 💰 (Ahorra 50)
+                    </button>
+                </div>
+            </div>
+
             <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border-2 border-green-300">
                 <h3 class="text-lg font-bold mb-2">📺 Anuncios</h3>
                 <p class="text-sm text-gray-600 mb-3">Mira un anuncio y gana monedas gratis</p>
@@ -161,34 +181,187 @@
             </button>
         </div>
 
+        <!-- PANTALLA MULTIJUGADOR -->
         <div id="multiplayer-screen" class="hidden space-y-4">
-            <h2 class="text-2xl font-bold mb-4 text-center text-pink-600">👥 Multijugador</h2>
-            
-            <div class="bg-pink-50 p-4 rounded-xl border-2 border-pink-300">
-                <h3 class="text-lg font-bold mb-3">🏆 Tabla de Clasificación</h3>
-                <div id="leaderboard-container" class="space-y-2">
-                    <p class="text-center text-gray-500">Cargando...</p>
+            <!-- Lobby Principal -->
+            <div id="multiplayer-lobby" class="space-y-4 hidden">
+                <h2 class="text-2xl font-bold mb-4 text-center text-pink-600">👥 Multijugador</h2>
+                
+                <div class="space-y-3">
+                    <button onclick="showCreateRoom()" class="w-full py-3 px-4 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl transition shadow-lg">
+                        🆕 Crear Sala
+                    </button>
+                    <button onclick="showJoinRoom()" class="w-full py-3 px-4 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-xl transition shadow-lg">
+                        🚪 Unirse a Sala
+                    </button>
+                    <button onclick="showLeaderboard()" class="w-full py-3 px-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl transition shadow-lg">
+                        🏆 Ver Clasificación
+                    </button>
                 </div>
-            </div>
 
-            <div class="bg-indigo-50 p-4 rounded-xl border-2 border-indigo-300">
-                <h3 class="text-lg font-bold mb-3">Tu Perfil</h3>
-                <p class="text-sm mb-2">Nombre: <span id="player-name-display" class="font-bold">Jugador</span></p>
-                <input type="text" id="player-name-input" placeholder="Ingresa tu nombre" class="w-full p-2 border-2 border-gray-300 rounded-lg mb-2" maxlength="20">
-                <button onclick="updatePlayerName()" class="w-full py-2 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-lg transition">
-                    Actualizar Nombre
+                <button onclick="showModeSelection()" class="w-full py-2 text-sm text-gray-600 hover:text-indigo-600 transition mt-4">
+                    ⬅️ Volver a Modos
                 </button>
             </div>
 
-            <button onclick="startGame('Multijugador')" class="w-full py-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl transition shadow-lg">
-                🎮 Jugar Multijugador
-            </button>
+            <!-- Crear Sala -->
+            <div id="create-room-screen" class="hidden space-y-4">
+                <h2 class="text-2xl font-bold mb-4 text-center text-pink-600">Crear Sala</h2>
+                
+                <div class="bg-pink-50 p-4 rounded-xl border-2 border-pink-300 space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold mb-2">Tu Nombre:</label>
+                        <input type="text" id="create-player-name" placeholder="Ingresa tu nombre" class="w-full p-2 border-2 border-gray-300 rounded-lg" maxlength="20">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold mb-2">Cantidad de Rondas (5-20):</label>
+                        <input type="number" id="room-rounds" min="5" max="20" value="10" class="w-full p-2 border-2 border-gray-300 rounded-lg">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold mb-2">Máximo de Jugadores (2-10):</label>
+                        <input type="number" id="room-max-players" min="2" max="10" value="4" class="w-full p-2 border-2 border-gray-300 rounded-lg">
+                    </div>
+                    
+                    <button onclick="createRoom()" class="w-full py-3 bg-pink-500 hover:bg-pink-600 text-white font-bold rounded-xl transition shadow-lg">
+                        Crear Sala
+                    </button>
+                </div>
 
-            <button onclick="showModeSelection()" class="w-full py-2 text-sm text-gray-600 hover:text-indigo-600 transition mt-4">
-                ⬅️ Volver a Modos
-            </button>
+                <button onclick="backToMultiplayerLobby()" class="w-full py-2 text-sm text-gray-600 hover:text-indigo-600 transition">
+                    ⬅️ Volver
+                </button>
+            </div>
+
+            <!-- Unirse a Sala -->
+            <div id="join-room-screen" class="hidden space-y-4">
+                <h2 class="text-2xl font-bold mb-4 text-center text-pink-600">Unirse a Sala</h2>
+                
+                <div class="bg-purple-50 p-4 rounded-xl border-2 border-purple-300 space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold mb-2">Tu Nombre:</label>
+                        <input type="text" id="join-player-name" placeholder="Ingresa tu nombre" class="w-full p-2 border-2 border-gray-300 rounded-lg" maxlength="20">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-bold mb-2">Código de Sala:</label>
+                        <input type="text" id="room-code-input" placeholder="Ingresa el código" class="w-full p-2 border-2 border-gray-300 rounded-lg uppercase" maxlength="6">
+                    </div>
+                    
+                    <button onclick="joinRoom()" class="w-full py-3 bg-purple-500 hover:bg-purple-600 text-white font-bold rounded-xl transition shadow-lg">
+                        Unirse
+                    </button>
+                </div>
+
+                <div class="bg-indigo-50 p-4 rounded-xl border-2 border-indigo-300">
+                    <h3 class="text-lg font-bold mb-3">Salas Disponibles</h3>
+                    <div id="available-rooms" class="space-y-2">
+                        <p class="text-center text-gray-500">Cargando...</p>
+                    </div>
+                </div>
+
+                <button onclick="backToMultiplayerLobby()" class="w-full py-2 text-sm text-gray-600 hover:text-indigo-600 transition">
+                    ⬅️ Volver
+                </button>
+            </div>
+
+            <!-- Sala de Espera -->
+            <div id="room-waiting-screen" class="hidden space-y-4">
+                <h2 class="text-2xl font-bold mb-4 text-center text-pink-600">Sala de Espera</h2>
+                
+                <div class="bg-pink-50 p-4 rounded-xl border-2 border-pink-300">
+                    <div class="text-center mb-4">
+                        <p class="text-sm text-gray-600">Código de Sala</p>
+                        <p class="text-3xl font-bold text-pink-600" id="room-code-display">------</p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <p class="text-sm font-bold mb-2">Configuración:</p>
+                        <p class="text-sm">Rondas: <span id="room-rounds-display" class="font-bold">0</span></p>
+                        <p class="text-sm">Jugadores: <span id="room-players-count">0</span>/<span id="room-max-players-display">0</span></p>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm font-bold mb-2">Jugadores en la sala:</p>
+                        <div id="room-players-list" class="space-y-1">
+                        </div>
+                    </div>
+                </div>
+
+                <button id="start-multiplayer-btn" onclick="startMultiplayerGame()" class="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition shadow-lg hidden">
+                    Iniciar Partida
+                </button>
+
+                <button onclick="leaveRoom()" class="w-full py-2 text-sm text-red-600 hover:text-red-700 transition">
+                    Salir de la Sala
+                </button>
+            </div>
+
+            <!-- Clasificación -->
+            <div id="leaderboard-screen" class="hidden space-y-4">
+                <h2 class="text-2xl font-bold mb-4 text-center text-pink-600">🏆 Clasificación Global</h2>
+                
+                <div class="bg-pink-50 p-4 rounded-xl border-2 border-pink-300">
+                    <h3 class="text-lg font-bold mb-3">Top Jugadores</h3>
+                    <div id="leaderboard-container" class="space-y-2">
+                        <p class="text-center text-gray-500">Cargando...</p>
+                    </div>
+                </div>
+
+                <div class="bg-indigo-50 p-4 rounded-xl border-2 border-indigo-300">
+                    <h3 class="text-lg font-bold mb-3">Tu Perfil</h3>
+                    <p class="text-sm mb-2">Nombre: <span id="player-name-display" class="font-bold">Jugador</span></p>
+                    <p class="text-sm mb-2">Monedas: <span id="player-coins-display" class="font-bold text-green-600">0</span></p>
+                    <input type="text" id="player-name-input" placeholder="Ingresa tu nombre" class="w-full p-2 border-2 border-gray-300 rounded-lg mb-2" maxlength="20">
+                    <button onclick="updatePlayerName()" class="w-full py-2 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-lg transition">
+                        Actualizar Nombre
+                    </button>
+                </div>
+
+                <button onclick="backToMultiplayerLobby()" class="w-full py-2 text-sm text-gray-600 hover:text-indigo-600 transition">
+                    ⬅️ Volver
+                </button>
+            </div>
+
+            <!-- Juego Multijugador -->
+            <div id="multiplayer-game-screen" class="hidden">
+                <div class="mb-4 p-3 bg-pink-100 rounded-xl text-sm font-semibold">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-700">Ronda: <span id="mp-round-display">1</span>/<span id="mp-total-rounds">10</span></span>
+                        <span class="text-pink-600">Puntos: <span id="mp-score-display">0</span></span>
+                    </div>
+                    <div id="mp-timer" class="text-2xl font-extrabold text-center p-2 rounded-lg bg-red-100 text-red-600">
+                        Tiempo: 15s
+                    </div>
+                </div>
+
+                <div class="relative mb-6 p-4 bg-indigo-50 rounded-xl shadow-inner border-l-4 border-indigo-400">
+                    <p id="mp-question-text" class="text-lg font-medium text-center text-indigo-900"></p>
+                </div>
+
+                <div class="space-y-4">
+                    <input type="text" id="mp-answer-input" placeholder="Escribe tu respuesta (MAYÚSCULAS)" class="w-full p-3 border-2 border-gray-300 rounded-xl focus:border-indigo-500 focus:outline-none text-center uppercase" onkeydown="handleMultiplayerKeyPress(event)">
+                    <button id="mp-check-button" onclick="submitMultiplayerAnswer()" class="w-full py-3 bg-green-500 hover:bg-green-600 text-white font-bold rounded-xl transition shadow-lg shadow-green-300/50">
+                        Responder
+                    </button>
+                    <p id="mp-feedback" class="text-center mt-4 font-semibold hidden"></p>
+                </div>
+
+                <div id="mp-waiting" class="hidden mt-4 p-4 bg-yellow-50 rounded-xl border-2 border-yellow-300 text-center">
+                    <p class="font-bold text-yellow-700">Esperando a otros jugadores...</p>
+                    <p class="text-sm text-gray-600 mt-2">Han respondido: <span id="mp-answered-count">0</span>/<span id="mp-total-players">0</span></p>
+                </div>
+
+                <div id="mp-scoreboard" class="hidden mt-4 p-4 bg-indigo-50 rounded-xl border-2 border-indigo-300">
+                    <h3 class="text-lg font-bold mb-3 text-center">Puntuaciones</h3>
+                    <div id="mp-scoreboard-list" class="space-y-1">
+                    </div>
+                </div>
+            </div>
         </div>
 
+        <!-- MODAL -->
         <div id="modal-container" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
             <div id="modal-content" class="bg-white p-6 rounded-xl shadow-2xl w-11/12 max-w-sm text-center">
                 <h3 id="modal-title" class="text-2xl font-bold mb-3">¡Título!</h3>
@@ -208,6 +381,8 @@
     const AVENTURA_GID = '157464759';
 
     const TIME_LIMIT = 15;
+    const MAX_TIME_LIMIT = 30;
+    const MP_TIME_LIMIT = 15;
 
     const state = {
         coins: 0,
@@ -220,8 +395,14 @@
         usedLetters: [],
         timerInterval: null,
         timeLeft: TIME_LIMIT,
+        timeLimit: TIME_LIMIT,
         playerId: null,
-        playerName: 'Jugador'
+        playerName: 'Jugador',
+        currentRoom: null,
+        roomPollingInterval: null,
+        multiplayerScore: 0,
+        isHost: false,
+        hasAnswered: false
     };
 
     const dom = {
@@ -360,7 +541,12 @@
         return false;
     }
 
-    function updateCoinsDisplay() { dom.coinsDisplay.textContent = state.coins; }
+    function updateCoinsDisplay() { 
+        dom.coinsDisplay.textContent = state.coins; 
+        const display = document.getElementById('player-coins-display');
+        if (display) display.textContent = state.coins;
+    }
+    
     function updateHintsDisplay() { dom.hintsDisplay.textContent = state.hints; }
     function updateStreakDisplay() { dom.streakDisplay.textContent = state.currentStreak; }
 
@@ -372,21 +558,34 @@
     }
 
     function resetView() {
-        dom.modeSelection.classList.remove('hidden');
+        dom.modeSelection.classList.add('hidden');
         dom.gameScreen.classList.add('hidden');
         dom.shopScreen.classList.add('hidden');
         dom.multiplayerScreen.classList.add('hidden');
         dom.modalContainer.classList.add('hidden');
+        
+        document.getElementById('multiplayer-lobby').classList.add('hidden');
+        document.getElementById('create-room-screen').classList.add('hidden');
+        document.getElementById('join-room-screen').classList.add('hidden');
+        document.getElementById('room-waiting-screen').classList.add('hidden');
+        document.getElementById('leaderboard-screen').classList.add('hidden');
+        document.getElementById('multiplayer-game-screen').classList.add('hidden');
     }
 
     function showModeSelection() {
         stopTimer();
+        stopRoomPolling();
         state.mode = null;
         state.currentQIndex = -1;
         state.currentAnswer = [];
         state.usedLetters = [];
         state.currentStreak = 0;
+        state.currentRoom = null;
+        state.isHost = false;
+        state.multiplayerScore = 0;
+        state.hasAnswered = false;
         resetView();
+        dom.modeSelection.classList.remove('hidden');
         dom.currentModeDisplay.textContent = 'N/A';
         updateCoinsDisplay();
     }
@@ -399,16 +598,13 @@
             state.questions = [...rachaQuestions];
             shuffleArray(state.questions);
             state.currentStreak = 0;
-            dom.streakDisplay.parentElement.classList.remove('hidden');
-        } else if (mode === 'Multijugador') {
+            document.getElementById('score-display-racha').classList.remove('hidden');
+            document.getElementById('score-display-aventura').classList.add('hidden');
+        } else if (mode === 'Aventura') {
             state.questions = [...adventureQuestions];
             shuffleArray(state.questions);
-            state.questions = state.questions.slice(0, 20);
-            dom.streakDisplay.parentElement.classList.add('hidden');
-        } else {
-            state.questions = [...adventureQuestions];
-            shuffleArray(state.questions);
-            dom.streakDisplay.parentElement.classList.add('hidden');
+            document.getElementById('score-display-racha').classList.add('hidden');
+            document.getElementById('score-display-aventura').classList.remove('hidden');
         }
 
         state.currentQIndex = -1;
@@ -430,7 +626,7 @@
 
     function startTimer() {
         stopTimer();
-        state.timeLeft = TIME_LIMIT;
+        state.timeLeft = state.timeLimit;
         dom.rachaTimer.textContent = `Tiempo: ${state.timeLeft}s`;
         dom.rachaTimer.classList.remove('bg-red-500', 'text-white', 'hidden');
         dom.rachaTimer.classList.add('bg-red-100', 'text-red-600');
@@ -465,7 +661,7 @@
     }
 
     function handleRachaKeyPress(event) {
-        if (state.mode !== 'Aventura' && event.key === 'Enter' && !document.getElementById('racha-check-button').disabled) {
+        if (event.key === 'Enter' && !document.getElementById('racha-check-button').disabled) {
             checkAnswer();
         }
     }
@@ -479,7 +675,7 @@
         
         dom.questionText.textContent = question.q;
         
-        const isAventura = state.mode === 'Aventura' || state.mode === 'Multijugador';
+        const isAventura = state.mode === 'Aventura';
         
         dom.rachaContainer.classList.toggle('hidden', isAventura);
         dom.aventuraContainer.classList.toggle('hidden', !isAventura);
@@ -514,7 +710,7 @@
         const currentQ = state.questions[state.currentQIndex];
         let userAnswer = '';
         
-        if (state.mode === 'Aventura' || state.mode === 'Multijugador') {
+        if (state.mode === 'Aventura') {
             userAnswer = state.currentAnswer.map(item => item.letter).join('');
             if (userAnswer.length !== currentQ.a.length) {
                 showTemporaryFeedback(dom.rachaFeedback, 'Por favor, completa todas las casillas.', 'text-red-500');
@@ -532,7 +728,7 @@
             } else {
                 handleRachaIncorrect(currentQ.a);
             }
-        } else if (state.mode === 'Aventura' || state.mode === 'Multijugador') {
+        } else if (state.mode === 'Aventura') {
             if (userAnswer === currentQ.a) { 
                 handleAventuraCorrect(currentQ);
             } else {
@@ -616,7 +812,7 @@
             dom.modalTitle.classList.remove('text-green-600');
             dom.modalTitle.classList.add(completed ? 'text-indigo-600' : 'text-red-600');
             dom.modalText.innerHTML = `Tu racha final fue de <span class="text-xl font-bold">${state.currentStreak}</span> aciertos.`;
-        } else if (state.mode === 'Aventura' || state.mode === 'Multijugador') {
+        } else if (state.mode === 'Aventura') {
             dom.modalTitle.textContent = "¡Partida Finalizada!";
             dom.modalTitle.classList.remove('text-red-600');
             dom.modalTitle.classList.add('text-indigo-600');
@@ -714,10 +910,10 @@
         }
     }
 
-    // Funciones de Tienda
     function showShop() {
         resetView();
         dom.shopScreen.classList.remove('hidden');
+        document.getElementById('time-limit-display').textContent = state.timeLimit + 's';
         checkAdCooldown();
     }
 
@@ -756,10 +952,59 @@
         }
     }
 
+    function buyTime(seconds) {
+        const prices = { 5: 100, 10: 150 };
+        const cost = prices[seconds];
+        
+        if (state.timeLimit + seconds > MAX_TIME_LIMIT) {
+            dom.modalTitle.textContent = "Límite Alcanzado";
+            dom.modalTitle.classList.remove('text-green-600');
+            dom.modalTitle.classList.add('text-yellow-600');
+            dom.modalText.innerHTML = `El tiempo máximo permitido es ${MAX_TIME_LIMIT} segundos`;
+            dom.modalButtons.innerHTML = `
+                <button onclick="dom.modalContainer.classList.add('hidden')" class="w-full py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl transition">
+                    Entendido
+                </button>
+            `;
+            dom.modalContainer.classList.remove('hidden');
+            return;
+        }
+        
+        if (state.coins >= cost) {
+            state.coins -= cost;
+            state.timeLimit += seconds;
+            updateCoinsDisplay();
+            savePlayerData();
+            document.getElementById('time-limit-display').textContent = state.timeLimit + 's';
+            
+            dom.modalTitle.textContent = "¡Compra Exitosa!";
+            dom.modalTitle.classList.remove('text-red-600');
+            dom.modalTitle.classList.add('text-green-600');
+            dom.modalText.innerHTML = `Compraste +${seconds} segundos. Nuevo límite: ${state.timeLimit}s`;
+            dom.modalButtons.innerHTML = `
+                <button onclick="dom.modalContainer.classList.add('hidden')" class="w-full py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl transition">
+                    Continuar
+                </button>
+            `;
+            dom.modalContainer.classList.remove('hidden');
+        } else {
+            dom.modalTitle.textContent = "Monedas Insuficientes";
+            dom.modalTitle.classList.remove('text-green-600');
+            dom.modalTitle.classList.add('text-red-600');
+            dom.modalText.innerHTML = `Necesitas ${cost} 💰 pero solo tienes ${state.coins} 💰`;
+            dom.modalButtons.innerHTML = `
+                <button onclick="dom.modalContainer.classList.add('hidden')" class="w-full py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl transition">
+                    Entendido
+                </button>
+            `;
+            dom.modalContainer.classList.remove('hidden');
+        }
+    }
+
     async function watchAd() {
         const lastAdTime = localStorage.getItem('lastAdTime');
         const now = Date.now();
-        const cooldown = 5 * 60 * 1000; // 5 minutos
+        const cooldown = 5 * 60 * 1000;
 
         if (lastAdTime && (now - parseInt(lastAdTime)) < cooldown) {
             const remaining = Math.ceil((cooldown - (now - parseInt(lastAdTime))) / 1000 / 60);
@@ -776,7 +1021,6 @@
             return;
         }
 
-        // Simular anuncio
         dom.modalTitle.textContent = "📺 Viendo Anuncio...";
         dom.modalTitle.classList.remove('text-red-600', 'text-yellow-600');
         dom.modalTitle.classList.add('text-indigo-600');
@@ -792,7 +1036,6 @@
         dom.modalButtons.innerHTML = '';
         dom.modalContainer.classList.remove('hidden');
 
-        // Simular progreso del anuncio
         let progress = 0;
         const adInterval = setInterval(() => {
             progress += 20;
@@ -842,11 +1085,575 @@
         }
     }
 
-    // Funciones de Multijugador
+    // FUNCIONES MULTIJUGADOR
     function showMultiplayer() {
         resetView();
         dom.multiplayerScreen.classList.remove('hidden');
+        document.getElementById('multiplayer-lobby').classList.remove('hidden');
+    }
+
+    function backToMultiplayerLobby() {
+        stopRoomPolling();
+        state.currentRoom = null;
+        state.isHost = false;
+        resetView();
+        dom.multiplayerScreen.classList.remove('hidden');
+        document.getElementById('multiplayer-lobby').classList.remove('hidden');
+    }
+
+    function showCreateRoom() {
+        resetView();
+        dom.multiplayerScreen.classList.remove('hidden');
+        document.getElementById('create-room-screen').classList.remove('hidden');
+        document.getElementById('create-player-name').value = state.playerName;
+    }
+
+    function showJoinRoom() {
+        resetView();
+        dom.multiplayerScreen.classList.remove('hidden');
+        document.getElementById('join-room-screen').classList.remove('hidden');
+        document.getElementById('join-player-name').value = state.playerName;
+        loadAvailableRooms();
+    }
+
+    function showLeaderboard() {
+        resetView();
+        dom.multiplayerScreen.classList.remove('hidden');
+        document.getElementById('leaderboard-screen').classList.remove('hidden');
+        document.getElementById('player-name-display').textContent = state.playerName;
         loadLeaderboard();
+    }
+
+    function generateRoomCode() {
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        let code = '';
+        for (let i = 0; i < 6; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return code;
+    }
+
+    async function createRoom() {
+        const playerName = document.getElementById('create-player-name').value.trim();
+        const rounds = parseInt(document.getElementById('room-rounds').value);
+        const maxPlayers = parseInt(document.getElementById('room-max-players').value);
+
+        if (!playerName) {
+            alert('Por favor ingresa tu nombre');
+            return;
+        }
+
+        if (rounds < 5 || rounds > 20) {
+            alert('Las rondas deben estar entre 5 y 20');
+            return;
+        }
+
+        if (maxPlayers < 2 || maxPlayers > 10) {
+            alert('Los jugadores deben estar entre 2 y 10');
+            return;
+        }
+
+        state.playerName = playerName;
+        const roomCode = generateRoomCode();
+        
+        const roomData = {
+            code: roomCode,
+            host: state.playerId,
+            rounds: rounds,
+            maxPlayers: maxPlayers,
+            players: [{
+                id: state.playerId,
+                name: playerName,
+                score: 0,
+                ready: false
+            }],
+            currentRound: 0,
+            status: 'waiting',
+            questions: [],
+            created: Date.now()
+        };
+
+        try {
+            await window.storage.set('room:' + roomCode, JSON.stringify(roomData), true);
+            state.currentRoom = roomCode;
+            state.isHost = true;
+            joinWaitingRoom(roomData);
+        } catch (error) {
+            console.error('Error creando sala:', error);
+            alert('Error al crear la sala');
+        }
+    }
+
+    async function joinRoom() {
+        const playerName = document.getElementById('join-player-name').value.trim();
+        const roomCode = document.getElementById('room-code-input').value.trim().toUpperCase();
+
+        if (!playerName) {
+            alert('Por favor ingresa tu nombre');
+            return;
+        }
+
+        if (!roomCode) {
+            alert('Por favor ingresa un código de sala');
+            return;
+        }
+
+        state.playerName = playerName;
+
+        try {
+            const result = await window.storage.get('room:' + roomCode, true);
+            if (!result) {
+                alert('Sala no encontrada');
+                return;
+            }
+
+            const roomData = JSON.parse(result.value);
+
+            if (roomData.players.length >= roomData.maxPlayers) {
+                alert('La sala está llena');
+                return;
+            }
+
+            if (roomData.status !== 'waiting') {
+                alert('La partida ya comenzó');
+                return;
+            }
+
+            const existingPlayer = roomData.players.find(p => p.id === state.playerId);
+            if (!existingPlayer) {
+                roomData.players.push({
+                    id: state.playerId,
+                    name: playerName,
+                    score: 0,
+                    ready: false
+                });
+
+                await window.storage.set('room:' + roomCode, JSON.stringify(roomData), true);
+            }
+
+            state.currentRoom = roomCode;
+            state.isHost = false;
+            joinWaitingRoom(roomData);
+        } catch (error) {
+            console.error('Error uniéndose a sala:', error);
+            alert('Error al unirse a la sala');
+        }
+    }
+
+    function joinWaitingRoom(roomData) {
+        resetView();
+        dom.multiplayerScreen.classList.remove('hidden');
+        document.getElementById('room-waiting-screen').classList.remove('hidden');
+        
+        document.getElementById('room-code-display').textContent = roomData.code;
+        document.getElementById('room-rounds-display').textContent = roomData.rounds;
+        document.getElementById('room-max-players-display').textContent = roomData.maxPlayers;
+        
+        updateRoomPlayersList(roomData);
+        
+        if (state.isHost) {
+            document.getElementById('start-multiplayer-btn').classList.remove('hidden');
+        } else {
+            document.getElementById('start-multiplayer-btn').classList.add('hidden');
+        }
+        
+        startRoomPolling();
+    }
+
+    function updateRoomPlayersList(roomData) {
+        const list = document.getElementById('room-players-list');
+        const count = document.getElementById('room-players-count');
+        
+        count.textContent = roomData.players.length;
+        
+        list.innerHTML = roomData.players.map(player => `
+            <div class="flex items-center justify-between p-2 bg-white rounded-lg">
+                <span class="font-medium">${player.name}</span>
+                ${player.id === roomData.host ? '<span class="text-xs bg-pink-500 text-white px-2 py-1 rounded">Anfitrión</span>' : ''}
+            </div>
+        `).join('');
+    }
+
+    function startRoomPolling() {
+        stopRoomPolling();
+        
+        state.roomPollingInterval = setInterval(async () => {
+            if (!state.currentRoom) {
+                stopRoomPolling();
+                return;
+            }
+
+            try {
+                const result = await window.storage.get('room:' + state.currentRoom, true);
+                if (!result) {
+                    stopRoomPolling();
+                    alert('La sala fue cerrada');
+                    backToMultiplayerLobby();
+                    return;
+                }
+
+                const roomData = JSON.parse(result.value);
+                
+                if (roomData.status === 'playing') {
+                    stopRoomPolling();
+                    startMultiplayerGameSession(roomData);
+                } else {
+                    updateRoomPlayersList(roomData);
+                }
+            } catch (error) {
+                console.error('Error actualizando sala:', error);
+            }
+        }, 2000);
+    }
+
+    function stopRoomPolling() {
+        if (state.roomPollingInterval) {
+            clearInterval(state.roomPollingInterval);
+            state.roomPollingInterval = null;
+        }
+    }
+
+    async function leaveRoom() {
+        if (!state.currentRoom) return;
+
+        try {
+            const result = await window.storage.get('room:' + state.currentRoom, true);
+            if (result) {
+                const roomData = JSON.parse(result.value);
+                roomData.players = roomData.players.filter(p => p.id !== state.playerId);
+
+                if (roomData.players.length === 0 || state.isHost) {
+                    await window.storage.delete('room:' + state.currentRoom, true);
+                } else {
+                    if (state.isHost && roomData.players.length > 0) {
+                        roomData.host = roomData.players[0].id;
+                    }
+                    await window.storage.set('room:' + state.currentRoom, JSON.stringify(roomData), true);
+                }
+            }
+        } catch (error) {
+            console.error('Error saliendo de sala:', error);
+        }
+
+        stopRoomPolling();
+        backToMultiplayerLobby();
+    }
+
+    async function startMultiplayerGame() {
+        if (!state.isHost || !state.currentRoom) return;
+
+        try {
+            const result = await window.storage.get('room:' + state.currentRoom, true);
+            if (!result) return;
+
+            const roomData = JSON.parse(result.value);
+
+            if (roomData.players.length < 2) {
+                alert('Se necesitan al menos 2 jugadores para comenzar');
+                return;
+            }
+
+            const questions = [...rachaQuestions];
+            shuffleArray(questions);
+            roomData.questions = questions.slice(0, roomData.rounds);
+            roomData.status = 'playing';
+            roomData.currentRound = 0;
+
+            await window.storage.set('room:' + state.currentRoom, JSON.stringify(roomData), true);
+        } catch (error) {
+            console.error('Error iniciando partida:', error);
+            alert('Error al iniciar la partida');
+        }
+    }
+
+    function startMultiplayerGameSession(roomData) {
+        state.multiplayerScore = 0;
+        state.hasAnswered = false;
+        
+        resetView();
+        dom.multiplayerScreen.classList.remove('hidden');
+        document.getElementById('multiplayer-game-screen').classList.remove('hidden');
+        
+        document.getElementById('mp-total-rounds').textContent = roomData.rounds;
+        document.getElementById('mp-total-players').textContent = roomData.players.length;
+        
+        loadMultiplayerQuestion(roomData);
+        startMultiplayerPolling();
+    }
+
+    function loadMultiplayerQuestion(roomData) {
+        state.hasAnswered = false;
+        const currentQ = roomData.questions[roomData.currentRound];
+        
+        document.getElementById('mp-round-display').textContent = roomData.currentRound + 1;
+        document.getElementById('mp-score-display').textContent = state.multiplayerScore;
+        document.getElementById('mp-question-text').textContent = currentQ.q;
+        document.getElementById('mp-answer-input').value = '';
+        document.getElementById('mp-answer-input').disabled = false;
+        document.getElementById('mp-check-button').disabled = false;
+        document.getElementById('mp-feedback').classList.add('hidden');
+        document.getElementById('mp-waiting').classList.add('hidden');
+        document.getElementById('mp-scoreboard').classList.add('hidden');
+        
+        startMultiplayerTimer();
+    }
+
+    function startMultiplayerTimer() {
+        stopTimer();
+        state.timeLeft = MP_TIME_LIMIT;
+        const timerEl = document.getElementById('mp-timer');
+        timerEl.textContent = `Tiempo: ${state.timeLeft}s`;
+        timerEl.classList.remove('bg-red-500', 'text-white');
+        timerEl.classList.add('bg-red-100', 'text-red-600');
+        
+        state.timerInterval = setInterval(() => {
+            state.timeLeft--;
+            timerEl.textContent = `Tiempo: ${state.timeLeft}s`;
+
+            if (state.timeLeft <= 5) {
+                timerEl.classList.remove('bg-red-100', 'text-red-600');
+                timerEl.classList.add('bg-red-500', 'text-white');
+            }
+
+            if (state.timeLeft <= 0) {
+                handleMultiplayerTimeout();
+            }
+        }, 1000);
+    }
+
+    function handleMultiplayerKeyPress(event) {
+        if (event.key === 'Enter' && !document.getElementById('mp-check-button').disabled) {
+            submitMultiplayerAnswer();
+        }
+    }
+
+    async function submitMultiplayerAnswer() {
+        if (state.hasAnswered) return;
+
+        stopTimer();
+        state.hasAnswered = true;
+
+        try {
+            const result = await window.storage.get('room:' + state.currentRoom, true);
+            if (!result) return;
+
+            const roomData = JSON.parse(result.value);
+            const currentQ = roomData.questions[roomData.currentRound];
+            const userAnswer = document.getElementById('mp-answer-input').value.toUpperCase().trim();
+            const isCorrect = areAnswersClose(userAnswer, currentQ.a);
+
+            const pointsEarned = isCorrect ? Math.max(1, Math.floor(10 * (state.timeLeft / MP_TIME_LIMIT))) : 0;
+            state.multiplayerScore += pointsEarned;
+
+            const playerIndex = roomData.players.findIndex(p => p.id === state.playerId);
+            if (playerIndex !== -1) {
+                roomData.players[playerIndex].score = state.multiplayerScore;
+                roomData.players[playerIndex].answered = true;
+            }
+
+            await window.storage.set('room:' + state.currentRoom, JSON.stringify(roomData), true);
+
+            document.getElementById('mp-answer-input').disabled = true;
+            document.getElementById('mp-check-button').disabled = true;
+
+            const feedbackEl = document.getElementById('mp-feedback');
+            feedbackEl.textContent = isCorrect ? `¡Correcto! +${pointsEarned} puntos` : `Incorrecto. Respuesta: ${currentQ.a}`;
+            feedbackEl.classList.remove('hidden', 'text-red-500', 'text-green-500');
+            feedbackEl.classList.add(isCorrect ? 'text-green-500' : 'text-red-500');
+
+            document.getElementById('mp-waiting').classList.remove('hidden');
+            updateMultiplayerWaitingCount(roomData);
+        } catch (error) {
+            console.error('Error enviando respuesta:', error);
+        }
+    }
+
+    async function handleMultiplayerTimeout() {
+        if (state.hasAnswered) return;
+        
+        stopTimer();
+        state.hasAnswered = true;
+
+        try {
+            const result = await window.storage.get('room:' + state.currentRoom, true);
+            if (!result) return;
+
+            const roomData = JSON.parse(result.value);
+            const currentQ = roomData.questions[roomData.currentRound];
+
+            const playerIndex = roomData.players.findIndex(p => p.id === state.playerId);
+            if (playerIndex !== -1) {
+                roomData.players[playerIndex].answered = true;
+            }
+
+            await window.storage.set('room:' + state.currentRoom, JSON.stringify(roomData), true);
+
+            document.getElementById('mp-answer-input').disabled = true;
+            document.getElementById('mp-check-button').disabled = true;
+
+            const feedbackEl = document.getElementById('mp-feedback');
+            feedbackEl.textContent = `Tiempo agotado. Respuesta: ${currentQ.a}`;
+            feedbackEl.classList.remove('hidden', 'text-green-500');
+            feedbackEl.classList.add('text-red-500');
+
+            document.getElementById('mp-waiting').classList.remove('hidden');
+            updateMultiplayerWaitingCount(roomData);
+        } catch (error) {
+            console.error('Error en timeout:', error);
+        }
+    }
+
+    function updateMultiplayerWaitingCount(roomData) {
+        const answeredCount = roomData.players.filter(p => p.answered).length;
+        document.getElementById('mp-answered-count').textContent = answeredCount;
+    }
+
+    function startMultiplayerPolling() {
+        stopRoomPolling();
+        
+        state.roomPollingInterval = setInterval(async () => {
+            if (!state.currentRoom) {
+                stopRoomPolling();
+                return;
+            }
+
+            try {
+                const result = await window.storage.get('room:' + state.currentRoom, true);
+                if (!result) {
+                    stopRoomPolling();
+                    alert('La sala fue cerrada');
+                    showModeSelection();
+                    return;
+                }
+
+                const roomData = JSON.parse(result.value);
+                
+                if (state.hasAnswered) {
+                    updateMultiplayerWaitingCount(roomData);
+                    
+                    const allAnswered = roomData.players.every(p => p.answered);
+                    
+                    if (allAnswered && state.isHost) {
+                        roomData.players.forEach(p => p.answered = false);
+                        roomData.currentRound++;
+                        await window.storage.set('room:' + state.currentRoom, JSON.stringify(roomData), true);
+                    }
+                }
+
+                if (roomData.currentRound >= roomData.rounds) {
+                    stopRoomPolling();
+                    showMultiplayerResults(roomData);
+                } else if (roomData.players.every(p => p.answered === false) && state.hasAnswered) {
+                    loadMultiplayerQuestion(roomData);
+                }
+            } catch (error) {
+                console.error('Error en polling multijugador:', error);
+            }
+        }, 1000);
+    }
+
+    function showMultiplayerResults(roomData) {
+        stopTimer();
+        stopRoomPolling();
+
+        const sortedPlayers = [...roomData.players].sort((a, b) => b.score - a.score);
+        const winner = sortedPlayers[0];
+
+        dom.modalTitle.textContent = "¡Partida Finalizada!";
+        dom.modalTitle.classList.remove('text-red-600');
+        dom.modalTitle.classList.add('text-pink-600');
+        
+        const isWinner = winner.id === state.playerId;
+        
+        dom.modalText.innerHTML = `
+            <div class="space-y-3">
+                <p class="text-2xl font-bold ${isWinner ? 'text-yellow-500' : 'text-gray-700'}">
+                    ${isWinner ? '🏆 ¡Ganaste!' : '🎮 Fin del Juego'}
+                </p>
+                <p class="text-lg">Ganador: <span class="font-bold text-pink-600">${winner.name}</span></p>
+                <p>Tu puntuación: <span class="font-bold">${state.multiplayerScore}</span></p>
+                <div class="mt-4 p-3 bg-gray-50 rounded-lg">
+                    <p class="font-bold mb-2">Puntuaciones Finales:</p>
+                    ${sortedPlayers.map((p, i) => `
+                        <div class="flex justify-between items-center p-1">
+                            <span>${i + 1}. ${p.name}</span>
+                            <span class="font-bold">${p.score}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+
+        dom.modalButtons.innerHTML = `
+            <button onclick="cleanupRoomAndReturn()" class="w-full py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl transition shadow-lg">
+                Volver al Menú
+            </button>
+        `;
+        dom.modalContainer.classList.remove('hidden');
+    }
+
+    async function cleanupRoomAndReturn() {
+        if (state.currentRoom && state.isHost) {
+            try {
+                await window.storage.delete('room:' + state.currentRoom, true);
+            } catch (error) {
+                console.error('Error limpiando sala:', error);
+            }
+        }
+        showModeSelection();
+    }
+
+    async function loadAvailableRooms() {
+        const container = document.getElementById('available-rooms');
+        container.innerHTML = '<p class="text-center text-gray-500">Cargando...</p>';
+        
+        try {
+            const result = await window.storage.list('room:', true);
+            if (!result || !result.keys || result.keys.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500">No hay salas disponibles</p>';
+                return;
+            }
+
+            const rooms = [];
+            for (const key of result.keys) {
+                try {
+                    const roomResult = await window.storage.get(key, true);
+                    if (roomResult && roomResult.value) {
+                        const room = JSON.parse(roomResult.value);
+                        if (room.status === 'waiting') {
+                            rooms.push(room);
+                        }
+                    }
+                } catch (e) {
+                    console.error('Error loading room:', e);
+                }
+            }
+
+            if (rooms.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500">No hay salas disponibles</p>';
+                return;
+            }
+
+            container.innerHTML = rooms.map(room => `
+                <div class="flex justify-between items-center p-2 bg-white rounded-lg">
+                    <div>
+                        <p class="font-bold">${room.code}</p>
+                        <p class="text-xs text-gray-600">${room.players.length}/${room.maxPlayers} jugadores · ${room.rounds} rondas</p>
+                    </div>
+                    <button onclick="quickJoinRoom('${room.code}')" class="px-3 py-1 bg-purple-500 hover:bg-purple-600 text-white text-sm font-bold rounded transition">
+                        Unirse
+                    </button>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading rooms:', error);
+            container.innerHTML = '<p class="text-center text-red-500">Error al cargar salas</p>';
+        }
+    }
+
+    async function quickJoinRoom(roomCode) {
+        document.getElementById('room-code-input').value = roomCode;
+        await joinRoom();
     }
 
     async function loadLeaderboard() {
@@ -929,12 +1736,18 @@
                 name: state.playerName || 'Jugador',
                 totalCoins: state.coins,
                 hints: state.hints,
+                timeLimit: state.timeLimit,
                 lastUpdated: Date.now()
             };
 
             await window.storage.set('player:' + state.playerId, JSON.stringify(playerData), true);
             localStorage.setItem('playerId', state.playerId);
-            localStorage.setItem('playerData', JSON.stringify({ coins: state.coins, hints: state.hints, name: state.playerName }));
+            localStorage.setItem('playerData', JSON.stringify({ 
+                coins: state.coins, 
+                hints: state.hints, 
+                name: state.playerName,
+                timeLimit: state.timeLimit
+            }));
         } catch (error) {
             console.error('Error saving player data:', error);
         }
@@ -950,6 +1763,7 @@
                 state.coins = data.coins || 0;
                 state.hints = data.hints || 0;
                 state.playerName = data.name || 'Jugador';
+                state.timeLimit = data.timeLimit || TIME_LIMIT;
                 updateCoinsDisplay();
                 updateHintsDisplay();
             }
@@ -975,9 +1789,22 @@
     window.goToNextQuestion = goToNextQuestion;
     window.showShop = showShop;
     window.buyHints = buyHints;
+    window.buyTime = buyTime;
     window.watchAd = watchAd;
     window.showMultiplayer = showMultiplayer;
     window.updatePlayerName = updatePlayerName;
+    window.backToMultiplayerLobby = backToMultiplayerLobby;
+    window.showCreateRoom = showCreateRoom;
+    window.showJoinRoom = showJoinRoom;
+    window.showLeaderboard = showLeaderboard;
+    window.createRoom = createRoom;
+    window.joinRoom = joinRoom;
+    window.quickJoinRoom = quickJoinRoom;
+    window.leaveRoom = leaveRoom;
+    window.startMultiplayerGame = startMultiplayerGame;
+    window.submitMultiplayerAnswer = submitMultiplayerAnswer;
+    window.handleMultiplayerKeyPress = handleMultiplayerKeyPress;
+    window.cleanupRoomAndReturn = cleanupRoomAndReturn;
 
     window.onload = async function() {
         const loaded = await loadQuestionsFromAPI();
