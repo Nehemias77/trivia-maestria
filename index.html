@@ -647,27 +647,48 @@
         if (!text) return "";
         let normalized = text.toUpperCase().trim();
         normalized = normalized.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        normalized = normalized.replace(/^(EL|LA|LOS|LAS|UN|UNA|UNOS|UNAS|DE|DEL|AL)\s+/g, '');
         if (normalized.endsWith('S') && normalized.length > 1) {
             normalized = normalized.substring(0, normalized.length - 1);
         }
         return normalized;
     }
 
+    function calculateSimilarity(str1, str2) {
+        const longer = str1.length > str2.length ? str1 : str2;
+        const shorter = str1.length > str2.length ? str2 : str1;
+        if (longer.length === 0) return 1.0;
+    
+        const costs = [];
+        for (let i = 0; i <= longer.length; i++) {
+            let lastValue = i;
+            for (let j = 0; j <= shorter.length; j++) {
+                if (i === 0) {
+                    costs[j] = j;
+                } else if (j > 0) {
+                    let newValue = costs[j - 1];
+                    if (longer.charAt(i - 1) !== shorter.charAt(j - 1)) {
+                        newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+                    }
+                    costs[j - 1] = lastValue;
+                    lastValue = newValue;
+                }
+            }
+            if (i > 0) costs[shorter.length] = lastValue;
+        }
+    
+        return (longer.length - costs[shorter.length]) / longer.length;
+    }
+
     function areAnswersClose(userAnswer, correctAnswer) {
         const userN = normalizeAnswer(userAnswer);
         const correctN = normalizeAnswer(correctAnswer);
-        
-        if (userN === correctN) return true;
-        if (userAnswer.toUpperCase().trim() === correctAnswer.toUpperCase().trim()) return true;
-
-        const userSingular = userAnswer.toUpperCase().trim().replace(/S$/, '');
-        const correctSingular = correctAnswer.toUpperCase().trim().replace(/S$/, '');
-        
-        if (userSingular === correctAnswer.toUpperCase().trim() || correctSingular === userAnswer.toUpperCase().trim()) {
-            return true;
-        }
-        
-        return false;
+    
+        if (userN === correctN) return { correct: true, score: 1.0 };
+        if (correctN.includes(userN) || userN.includes(correctN)) return { correct: true, score: 0.85 };
+    
+        const similarity = calculateSimilarity(userN, correctN);
+        return similarity >= 0.7 ? { correct: true, score: similarity } : { correct: false, score: 0 };
     }
 
     function updateCoinsDisplay() { 
@@ -855,17 +876,17 @@
             userAnswer = dom.rachaAnswerInput.value.toUpperCase().trim();
         }
 
-        const isCorrect = areAnswersClose(userAnswer, currentQ.a);
+        const result = areAnswersClose(userAnswer, currentQ.a);
 
         if (state.mode === 'Racha') {
-            if (isCorrect) {
+            if (result.correct) {
                 handleRachaCorrect();
             } else {
                 handleRachaIncorrect(currentQ.a);
             }
         } else if (state.mode === 'Aventura') {
-            if (userAnswer === currentQ.a) { 
-                handleAventuraCorrect(currentQ);
+            if (result.correct) {
+                handleAventuraCorrect(currentQ, result.score);
             } else {
                 handleAventuraIncorrect();
             }
@@ -895,8 +916,8 @@
         endGame(false, "¡Racha Rota!");
     }
 
-    function handleAventuraCorrect(currentQ) {
-        const reward = currentQ.value;
+    function handleAventuraCorrect(currentQ, scoreMultiplier = 1.0) {
+        const reward = Math.ceil(currentQ.value * scoreMultiplier);
         state.coins += reward;
         updateCoinsDisplay();
         savePlayerData();
@@ -904,7 +925,7 @@
         dom.modalTitle.textContent = "¡Respuesta Correcta!";
         dom.modalTitle.classList.remove('text-red-600', 'text-indigo-600');
         dom.modalTitle.classList.add('text-green-600');
-        dom.modalText.innerHTML = `¡Ganaste <span class="text-green-600 font-bold">${reward} monedas</span>! Total: ${state.coins} monedas.`;
+        dom.modalText.innerHTML = `¡Ganaste <span class="text-green-600 font-bold">${reward} monedas</span>! ${accuracy < 100 ? `(${accuracy}% precisión)` : ''}<br>Total: ${state.coins} monedas.`;
 
         dom.modalButtons.innerHTML = `
             <button onclick="goToNextQuestion()" class="w-full py-3 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-xl transition shadow-lg">
@@ -1602,9 +1623,9 @@
             const roomData = result.value;
             const currentQ = roomData.questions[roomData.currentRound];
             const userAnswer = document.getElementById('mp-answer-input').value.toUpperCase().trim();
-            const isCorrect = areAnswersClose(userAnswer, currentQ.a);
-
-            const pointsEarned = isCorrect ? Math.max(1, Math.floor(10 * (state.timeLeft / MP_TIME_LIMIT))) : 0;
+            const answerResult = areAnswersClose(userAnswer, currentQ.a);
+            
+            const pointsEarned = answerResult.correct ? Math.max(1, Math.floor(10 * (state.timeLeft / MP_TIME_LIMIT) * answerResult.score)) : 0;
             state.multiplayerScore += pointsEarned;
 
             const playerIndex = roomData.players.findIndex(p => p.id === state.playerId);
@@ -1620,9 +1641,9 @@
             document.getElementById('mp-check-button').disabled = true;
 
             const feedbackEl = document.getElementById('mp-feedback');
-            feedbackEl.textContent = isCorrect ? `¡Correcto! +${pointsEarned} puntos` : `Incorrecto. Respuesta: ${currentQ.a}`;
+            feedbackEl.textContent = answerResult.correct ? `¡Correcto! +${pointsEarned} puntos` : `Incorrecto. Respuesta: ${currentQ.a}`;
             feedbackEl.classList.remove('hidden', 'text-red-500', 'text-green-500');
-            feedbackEl.classList.add(isCorrect ? 'text-green-500' : 'text-red-500');
+            feedbackEl.classList.add(answerResult.correct ? 'text-green-500' : 'text-red-500');
 
             document.getElementById('mp-waiting').classList.remove('hidden');
             updateMultiplayerWaitingCount(roomData);
